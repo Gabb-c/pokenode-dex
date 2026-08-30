@@ -8,7 +8,27 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // Two projects so the pure api/lib tests stay on node, and only the ones
+    // that render pay for jsdom and the Testing Library setup.
+    projects: [
+      {
+        resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: ['src/lib/dex-search.test.ts'],
+        },
+      },
+      {
+        resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+        test: {
+          name: 'dom',
+          environment: 'jsdom',
+          include: ['src/**/*.test.tsx', 'src/lib/dex-search.test.ts'],
+          setupFiles: ['./src/test/setup.ts'],
+        },
+      },
+    ],
   },
 })

@@ -57,7 +57,7 @@ const FEATURES: Feature[] = [
 
 function About() {
   return (
-    <div className="flex max-w-3xl flex-col gap-10">
+    <div className="mx-auto flex max-w-3xl flex-col gap-10">
       <header>
         <h1 className="text-2xl tracking-tight">How this app uses pokenode-ts</h1>
         <p className="mt-2 text-sm text-ink-mid">

@@ -36,7 +36,7 @@ function TypeChart() {
         </p>
       </header>
 
-      <div className="panel overflow-x-auto">
+      <div className="panel w-fit max-w-full overflow-x-auto">
         <table className="min-w-max border-collapse text-micro">
           <caption className="sr-only">
             Damage multiplier of each attacking type against each defending type
@@ -46,13 +46,14 @@ function TypeChart() {
               <th scope="col" className="sticky left-0 z-10 bg-surface-1 p-2 text-left">
                 Atk ╲ Def
               </th>
+              {/* Set vertically rather than abbreviated: a column is identified by its name. */}
               {BATTLE_TYPES.map((name) => (
-                <th key={name} scope="col" className="p-1">
+                <th key={name} scope="col" className="h-24 p-1 align-bottom">
                   <span
-                    className="block w-7 -rotate-45 text-[0.6rem] uppercase"
+                    className="mx-auto block w-4 rotate-180 uppercase [writing-mode:vertical-rl]"
                     style={{ color: typeVar(name) }}
                   >
-                    {name.slice(0, 3)}
+                    {name}
                   </span>
                 </th>
               ))}
@@ -71,7 +72,7 @@ function TypeChart() {
                       key={defender}
                       className={`p-1 text-center ${TONE[multiplier] ?? 'text-ink-lo'}`}
                     >
-                      {multiplier === 1 ? '' : effectiveness(multiplier)}
+                      {multiplier === 1 ? '' : `×${effectiveness(multiplier)}`}
                     </td>
                   )
                 })}

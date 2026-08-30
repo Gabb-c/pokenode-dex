@@ -21,6 +21,6 @@ export function filterDex(
       if (members && !members.has(entry.id)) return false
     }
     if (!term) return true
-    return entry.name.includes(term) || String(entry.id).padStart(4, '0').includes(term)
+    return entry.name.includes(term) || entry.no.includes(term)
   })
 }

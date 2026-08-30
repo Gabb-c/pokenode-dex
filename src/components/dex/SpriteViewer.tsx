@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { getPokemonSpriteUrl, type SpriteVariant } from 'pokenode-ts'
 
 interface Facets {
@@ -49,10 +49,19 @@ function spriteUrl(id: number, variant: SpriteVariant, facets: Facets): string {
   }
 }
 
-export function SpriteViewer({ id, name }: { id: number; name: string }) {
+interface SpriteViewerProps {
+  id: number
+  name: string
+  /** The Pokémon's primary type, so the frame belongs to the specimen inside it. */
+  tint: string
+}
+
+export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
   const [variant, setVariant] = useState<SpriteVariant>('official-artwork')
   const [facets, setFacets] = useState<Facets>({ shiny: false, back: false, female: false })
-  const [missing, setMissing] = useState(false)
+  // The URL that failed, not a bare flag: the route keeps this component mounted
+  // across a change of `id`, so a boolean would follow one Pokémon to the next.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
 
   const supported = SETS[variant]
   // A facet the set does not publish must not reach the URL builder.
@@ -62,9 +71,13 @@ export function SpriteViewer({ id, name }: { id: number; name: string }) {
     female: supported.female && facets.female,
   }
   const url = spriteUrl(id, variant, effective)
+  const missing = failedUrl === url
 
   return (
-    <div className="panel flex flex-col gap-3 p-4">
+    <div
+      className="panel flex flex-col gap-3 border-[color-mix(in_oklch,var(--t)_35%,var(--line))] p-4"
+      style={{ '--t': tint } as CSSProperties}
+    >
       <div className="grid h-56 place-items-center">
         {missing ? (
           <p className="text-center text-micro text-ink-lo">
@@ -77,8 +90,8 @@ export function SpriteViewer({ id, name }: { id: number; name: string }) {
             alt={name}
             decoding="async"
             referrerPolicy="no-referrer"
-            onError={() => setMissing(true)}
-            className="max-h-56 object-contain"
+            onError={() => setFailedUrl(url)}
+            className="max-h-56 max-w-full object-contain"
           />
         )}
       </div>
@@ -90,10 +103,7 @@ export function SpriteViewer({ id, name }: { id: number; name: string }) {
             type="button"
             role="radio"
             aria-checked={variant === option}
-            onClick={() => {
-              setVariant(option)
-              setMissing(false)
-            }}
+            onClick={() => setVariant(option)}
             className={`rounded-[3px] px-2 py-0.5 text-micro transition-colors ${
               variant === option ? 'bg-accent text-accent-ink' : 'well text-ink-lo hover:text-ink-hi'
             }`}
@@ -116,10 +126,9 @@ export function SpriteViewer({ id, name }: { id: number; name: string }) {
               type="checkbox"
               checked={effective[facet]}
               disabled={!supported[facet]}
-              onChange={(event) => {
+              onChange={(event) =>
                 setFacets((current) => ({ ...current, [facet]: event.target.checked }))
-                setMissing(false)
-              }}
+              }
             />
             {facet}
           </label>

@@ -1,5 +1,5 @@
 import type { NamedAPIResource, Generation } from 'pokenode-ts'
-import { humanize } from '@/lib/format'
+import { generationLabel } from '@/lib/format'
 import { BATTLE_TYPES, typeVar, type TypeName } from '@/lib/types'
 import type { CSSProperties } from 'react'
 
@@ -14,10 +14,19 @@ interface DexFiltersProps {
   generations: NamedAPIResource<Generation>[] | undefined
   showing: number
   total: number
+  /** The query alone: it reaches the URL debounced, the rest immediately. */
+  onQueryChange: (next: string) => void
   onChange: (next: Partial<DexFilterState>) => void
 }
 
-export function DexFilters({ value, generations, showing, total, onChange }: DexFiltersProps) {
+export function DexFilters({
+  value,
+  generations,
+  showing,
+  total,
+  onQueryChange,
+  onChange,
+}: DexFiltersProps) {
   const filtered = value.q !== '' || value.gen !== '' || value.types.length > 0
 
   function toggleType(name: TypeName) {
@@ -34,7 +43,7 @@ export function DexFilters({ value, generations, showing, total, onChange }: Dex
         <input
           type="search"
           value={value.q}
-          onChange={(event) => onChange({ q: event.target.value })}
+          onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Filter by name or number…"
           aria-label="Filter the dex"
           className="well w-full max-w-xs px-3 py-1.5 text-sm text-ink-hi placeholder:text-ink-lo"
@@ -50,7 +59,7 @@ export function DexFilters({ value, generations, showing, total, onChange }: Dex
             <option value="">any</option>
             {generations?.map((generation) => (
               <option key={generation.name} value={generation.name}>
-                {humanize(generation.name.replace('generation-', ''))}
+                {generationLabel(generation.name)}
               </option>
             ))}
           </select>
@@ -63,7 +72,10 @@ export function DexFilters({ value, generations, showing, total, onChange }: Dex
         {filtered && (
           <button
             type="button"
-            onClick={() => onChange({ q: '', gen: '', types: [] })}
+            onClick={() => {
+              onQueryChange('')
+              onChange({ q: '', gen: '', types: [] })
+            }}
             className="ml-auto rounded-[3px] border border-line px-2 py-0.5 text-micro text-ink-lo hover:border-line-strong hover:text-ink-hi"
           >
             clear filters

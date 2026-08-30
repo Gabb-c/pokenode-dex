@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { cleanFlavorText, dexNo, effectiveness, humanize, kilograms, metres } from './format'
+import {
+  cleanFlavorText,
+  dexNo,
+  effectiveness,
+  generationLabel,
+  humanize,
+  kilograms,
+  metres,
+  padDexNo,
+  tidyTrigger,
+} from './format'
 
 describe('dexNo', () => {
   it('pads to four digits so the column aligns', () => {
@@ -9,6 +19,11 @@ describe('dexNo', () => {
 
   it('does not truncate the five-digit ids the API gives alternate forms', () => {
     expect(dexNo(10001)).toBe('#10001')
+  })
+
+  it('exposes the bare padding the dex filter matches against', () => {
+    expect(padDexNo(25)).toBe('0025')
+    expect(padDexNo(10001)).toBe('10001')
   })
 })
 
@@ -31,6 +46,27 @@ describe('humanize', () => {
   })
 })
 
+describe('generationLabel', () => {
+  it('keeps the numeral a numeral', () => {
+    expect(generationLabel('generation-i')).toBe('Gen I')
+    expect(generationLabel('generation-viii')).toBe('Gen VIII')
+  })
+})
+
+describe('tidyTrigger', () => {
+  it('drops the verb when a condition already says it', () => {
+    expect(tidyTrigger('level up, at level 16')).toBe('at level 16')
+  })
+
+  it('keeps the bare verb, which is the whole condition', () => {
+    expect(tidyTrigger('level up')).toBe('level up')
+  })
+
+  it('leaves the triggers that are not level ups alone', () => {
+    expect(tidyTrigger('trade: holding metal coat')).toBe('trade: holding metal coat')
+  })
+})
+
 describe('cleanFlavorText', () => {
   it('unwraps the hard breaks and form feeds the API ships', () => {
     expect(cleanFlavorText('It can see\nthrough\fwalls.')).toBe('It can see through walls.')
@@ -38,6 +74,11 @@ describe('cleanFlavorText', () => {
 
   it('collapses the double spaces that leaves behind', () => {
     expect(cleanFlavorText('A  b\n\nc ')).toBe('A b c')
+  })
+
+  it('rewrites the all-caps spelling the older games shipped', () => {
+    expect(cleanFlavorText('This POKéMON sleeps.')).toBe('This Pokémon sleeps.')
+    expect(cleanFlavorText('This POKEMON sleeps.')).toBe('This Pokémon sleeps.')
   })
 })
 

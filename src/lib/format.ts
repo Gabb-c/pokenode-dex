@@ -1,6 +1,11 @@
+/** `0025`. Precomputed per entry for the dex filter, which matches against it. */
+export function padDexNo(id: number): string {
+  return String(id).padStart(4, '0')
+}
+
 /** `#0025`. The dex is scanned as a column, so the width is fixed. */
 export function dexNo(id: number): string {
-  return `#${String(id).padStart(4, '0')}`
+  return `#${padDexNo(id)}`
 }
 
 /** The API reports height in decimetres. */
@@ -21,9 +26,35 @@ export function humanize(slug: string): string {
     .join(' ')
 }
 
-/** Flavor text arrives with hard line breaks and form feeds baked in. */
+/**
+ * `generation-iii` → `Gen III`.
+ *
+ * Its own function rather than a rule inside `humanize`: the numeral has to be
+ * uppercased whole, and a species named `mr-mime` must not be.
+ */
+export function generationLabel(slug: string): string {
+  return `Gen ${slug.replace('generation-', '').toUpperCase()}`
+}
+
+/**
+ * The library formats a trigger as `level up, at level 16`, which says the same
+ * thing twice. The bare `level up` — an evolution with no further condition —
+ * still needs its verb.
+ */
+export function tidyTrigger(text: string): string {
+  return text.replace(/^level up, /, '')
+}
+
+/**
+ * Flavor text arrives with hard line breaks and form feeds baked in, and with
+ * the all-caps `POKéMON` the older games shipped.
+ */
 export function cleanFlavorText(text: string): string {
-  return text.replace(/[\n\f\r]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
+  return text
+    .replace(/[\n\f\r]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/POK[EÉé]MON/g, 'Pokémon')
+    .trim()
 }
 
 const multipliers = new Map([

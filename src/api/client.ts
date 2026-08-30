@@ -50,15 +50,33 @@ export const api = new MainClient({
  * transport is shared by every section client, so resetting it for one reader
  * resets it for all of them. `statsSince` subtracts a kept snapshot instead,
  * which is what lets "clear caches" start the rail from zero.
+ *
+ * Read as a `useSyncExternalStore` snapshot, which requires a stable identity
+ * between commits: the recomputed tally replaces the held one only once a count
+ * has actually moved.
  */
 let baseline = api.stats
+let counts: ClientStats = api.statsSince(baseline)
+
+function settled(a: ClientStats, b: ClientStats): boolean {
+  return (
+    a.network === b.network &&
+    a.cache === b.cache &&
+    a.inFlight === b.inFlight &&
+    a.revalidated === b.revalidated &&
+    a.roundTrips === b.roundTrips
+  )
+}
 
 export function stats(): ClientStats {
-  return api.statsSince(baseline)
+  const next = api.statsSince(baseline)
+  if (!settled(counts, next)) counts = next
+  return counts
 }
 
 export function resetStats(): void {
   baseline = api.stats
+  counts = api.statsSince(baseline)
 }
 
 /** How long a single request may run before the scope aborts it. */

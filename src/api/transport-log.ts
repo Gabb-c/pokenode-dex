@@ -34,7 +34,10 @@ export type TransportEvent =
 export interface TransportSnapshot {
   /** Newest first. */
   events: readonly TransportEvent[]
-  /** Requests still outstanding, which is a different question to `ClientStats.inFlight`. */
+  /**
+   * Requests still outstanding — the rail's "pending". A different question to
+   * `ClientStats.inFlight`, which counts callers that joined one of them.
+   */
   inFlight: number
   retries: number
   cancelled: number

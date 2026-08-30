@@ -6,7 +6,7 @@ import {
   resourceId,
   type ChainLink,
 } from 'pokenode-ts'
-import { dexNo, humanize } from '@/lib/format'
+import { dexNo, humanize, tidyTrigger } from '@/lib/format'
 
 /**
  * The chain as the directed graph it is.
@@ -49,7 +49,7 @@ function Node({ link, current }: { link: ChainLink; current: string }) {
  * version group, so a species reached two ways carries two of them.
  */
 const routesInto = (link: ChainLink) =>
-  link.evolution_details.map((detail) => formatRequirements(requirementsOf(detail)))
+  link.evolution_details.map((detail) => tidyTrigger(formatRequirements(requirementsOf(detail))))
 
 function Edge({ conditions }: { conditions: string[] }) {
   return (

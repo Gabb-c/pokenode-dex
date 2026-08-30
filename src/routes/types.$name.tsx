@@ -6,6 +6,10 @@ import { isNotFound } from '@/api/query-client'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { humanize } from '@/lib/format'
+import { isBattleType } from '@/lib/types'
+
+/** Enough to browse; the dex filter is the right tool past this. */
+const LISTED = 120
 
 export const Route = createFileRoute('/types/$name')({
   loader: async ({ context, params }) => {
@@ -44,7 +48,7 @@ function TypeDetail() {
         </span>
       </header>
 
-      <div className="panel divide-y divide-line">
+      <div className="panel max-w-3xl divide-y divide-line">
         {groups.map(([label, links]) => (
           <div key={label} className="flex flex-wrap items-center gap-2 p-3">
             <span className="w-40 shrink-0 text-micro uppercase text-ink-lo">{label}</span>
@@ -60,7 +64,7 @@ function TypeDetail() {
       <section>
         <h2 className="text-micro uppercase text-ink-lo">Pokémon</h2>
         <ul className="mt-3 flex flex-wrap gap-2">
-          {type.pokemon.slice(0, 120).map(({ pokemon }) => (
+          {type.pokemon.slice(0, LISTED).map(({ pokemon }) => (
             <li key={pokemon.name}>
               <Link
                 to="/pokemon/$name"
@@ -75,6 +79,16 @@ function TypeDetail() {
             </li>
           ))}
         </ul>
+        {type.pokemon.length > LISTED && isBattleType(type.name) && (
+          <p className="mt-3 text-sm text-ink-lo">
+            The first <output data-numeric>{LISTED}</output> of{' '}
+            <output data-numeric>{type.pokemon.length}</output>.{' '}
+            <Link to="/pokemon" search={{ types: [type.name] }} className="text-accent">
+              See them all in the dex
+            </Link>
+            .
+          </p>
+        )}
       </section>
     </section>
   )

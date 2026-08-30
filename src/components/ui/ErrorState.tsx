@@ -21,9 +21,10 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
       <p className="text-micro uppercase text-negative">
         {pokenode ? `${pokenode.status} ${pokenode.statusText}` : 'Request failed'}
       </p>
-      <h2 className="mt-2 text-lg">{message}</h2>
+      <h2 className="mt-2 text-lg">That request did not complete.</h2>
+      <p className="mt-2 font-mono text-xs text-ink-mid">{message}</p>
       {pokenode && (
-        <p className="mt-3 truncate font-mono text-xs text-ink-lo" title={pokenode.url}>
+        <p className="mt-1 truncate font-mono text-xs text-ink-lo" title={pokenode.url}>
           {pokenode.url}
         </p>
       )}

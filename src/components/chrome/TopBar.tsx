@@ -10,8 +10,9 @@ const NAV = [
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-surface-0/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-4 py-2.5">
+    <header className="z-20 border-b border-line bg-surface-0/90 backdrop-blur">
+      {/* Wraps rather than overflowing: eight controls do not fit a phone in one row. */}
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
         <Link to="/pokemon" className="font-semibold tracking-tight text-ink-hi">
           Pokenode<span className="text-accent">·</span>Dex
         </Link>
@@ -21,7 +22,7 @@ export function TopBar() {
             <Link
               key={to}
               to={to}
-              className="rounded-[4px] px-2.5 py-1 text-sm text-ink-mid hover:text-ink-hi"
+              className="rounded-[4px] px-2.5 py-1 text-sm whitespace-nowrap text-ink-mid hover:text-ink-hi"
               activeProps={{ className: 'bg-surface-2 text-ink-hi' }}
               activeOptions={{ exact: false }}
             >
@@ -36,7 +37,7 @@ export function TopBar() {
             href="https://pokenode-ts.vercel.app/"
             target="_blank"
             rel="noreferrer"
-            className="text-micro uppercase text-ink-lo hover:text-ink-hi"
+            className="hidden text-micro uppercase text-ink-lo hover:text-ink-hi sm:block"
           >
             pokenode-ts ↗
           </a>

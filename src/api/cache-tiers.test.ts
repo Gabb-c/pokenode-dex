@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { QueryObserver } from '@tanstack/react-query'
 import { MainClient, WebStorageCache, type Logger, type WebStorageLike } from 'pokenode-ts'
+import { l1Hits, queryClient } from './query-client'
 
 /**
  * The transport tier, exercised against a stub PokéAPI.
@@ -159,8 +161,8 @@ describe('the transport tally', () => {
     const { network, revalidated, roundTrips } = pokeapi.stats
 
     expect(network).toBe(1)
-    // Three requests left the process for one downloaded body, so the count the
-    // rail used to compute — `network + revalidated` — was short by two.
+    // Three requests left the process for one downloaded body, which is why the
+    // rail counts attempts apart from what it labels `net`.
     expect(roundTrips).toBe(3)
     expect(roundTrips).not.toBe(network + revalidated)
   })
@@ -178,5 +180,49 @@ describe('the transport tally', () => {
 
     expect(pokeapi.stats.network).toBe(1)
     expect(pokeapi.statsSince(baseline)).toMatchObject({ network: 0, cache: 1, roundTrips: 0 })
+  })
+})
+
+/**
+ * The React tier's own tally.
+ *
+ * Query answers a fresh key from memory without calling the transport, so this
+ * is the one number the client cannot report and the rail would otherwise miss.
+ */
+describe('the L1 tally', () => {
+  beforeEach(() => {
+    queryClient.clear()
+    l1Hits.clear()
+  })
+
+  it('counts an observer that mounted onto memory and never fetched', async () => {
+    const queryFn = vi.fn(async () => BODY)
+    const options = { queryKey: ['pikachu'], queryFn }
+
+    const cold = new QueryObserver(queryClient, options)
+    const leaveCold = cold.subscribe(() => {})
+    await vi.waitFor(() => expect(queryClient.getQueryData(['pikachu'])).toBeDefined())
+    leaveCold()
+    expect(l1Hits.get()).toBe(0)
+
+    // Still inside `staleTime`, so this mount resolves without a fetch.
+    const warm = new QueryObserver(queryClient, options)
+    const leaveWarm = warm.subscribe(() => {})
+    await vi.waitFor(() => expect(l1Hits.get()).toBe(1))
+    leaveWarm()
+
+    expect(queryFn).toHaveBeenCalledTimes(1)
+  })
+
+  it('counts nothing for a mount that has to fetch', async () => {
+    const observer = new QueryObserver(queryClient, {
+      queryKey: ['mew'],
+      queryFn: async () => BODY,
+    })
+    const leave = observer.subscribe(() => {})
+    await vi.waitFor(() => expect(queryClient.getQueryData(['mew'])).toBeDefined())
+    leave()
+
+    expect(l1Hits.get()).toBe(0)
   })
 })

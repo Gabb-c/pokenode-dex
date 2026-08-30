@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { filterDex } from './dex-filter'
 
 const index = [
-  { id: 1, name: 'bulbasaur' },
-  { id: 4, name: 'charmander' },
-  { id: 25, name: 'pikachu' },
-  { id: 133, name: 'eevee' },
+  { id: 1, name: 'bulbasaur', no: '0001' },
+  { id: 4, name: 'charmander', no: '0004' },
+  { id: 25, name: 'pikachu', no: '0025' },
+  { id: 133, name: 'eevee', no: '0133' },
 ]
 const names = (entries: { name: string }[]) => entries.map((entry) => entry.name)
 

@@ -31,6 +31,43 @@ export const queryClient = new QueryClient({
 })
 
 /**
+ * L1 hits, which nothing beneath this tier can see.
+ *
+ * A query answered from Query's own cache never reaches the transport, so it
+ * raises no event and moves none of the client's counts — the rail would read
+ * flat while the app served everything from memory.
+ *
+ * `observerAdded` fires before the observer decides whether to fetch, so the
+ * decision is read a microtask later rather than predicted: an observer that
+ * mounted onto data and stayed idle was served here.
+ */
+let hits = 0
+const listeners = new Set<() => void>()
+
+queryClient.getQueryCache().subscribe((event) => {
+  if (event.type !== 'observerAdded' || event.query.state.data === undefined) return
+  queueMicrotask(() => {
+    if (event.query.state.fetchStatus !== 'idle') return
+    hits += 1
+    for (const listener of listeners) listener()
+  })
+})
+
+export const l1Hits = {
+  subscribe(listener: () => void) {
+    listeners.add(listener)
+    return () => listeners.delete(listener)
+  },
+  get(): number {
+    return hits
+  },
+  clear() {
+    hits = 0
+    for (const listener of listeners) listener()
+  },
+}
+
+/**
  * Both tiers, in the only order that works.
  *
  * Dropping Query alone would refill it from the transport cache on the next
@@ -39,6 +76,7 @@ export const queryClient = new QueryClient({
 export async function clearAllCaches(): Promise<void> {
   queryClient.clear()
   await api.clearCache()
-  transportLog.clear()
   resetStats()
+  l1Hits.clear()
+  transportLog.clear()
 }

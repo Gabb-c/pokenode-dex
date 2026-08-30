@@ -1,14 +1,20 @@
 import { useDeferredValue, useLayoutEffect, useMemo, useState } from 'react'
-import { useQueries, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useQueries,
+  useQuery,
+  useSuspenseQuery,
+  type UseQueryResult,
+} from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { generationMembersQuery, generationsQuery } from '@/api/queries/games'
-import { searchIndexQuery } from '@/api/queries/search-index'
+import { type DexEntry, searchIndexQuery } from '@/api/queries/search-index'
 import { typeMembersQuery } from '@/api/queries/types'
 import { DexFilters, type DexFilterState } from '@/components/dex/DexFilters'
 import { PokemonCard } from '@/components/dex/PokemonCard'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { filterDex } from '@/lib/dex-filter'
+import { useDexSearch } from '@/lib/dex-search'
 import { isBattleType, type TypeName } from '@/lib/types'
 
 interface DexSearch {
@@ -35,6 +41,10 @@ export const Route = createFileRoute('/pokemon/')({
 const CARD_MIN = 150
 const ROW_HEIGHT = 186
 
+/** Module-scoped: the observer keys its memo on this identity. */
+const membersOf = (results: UseQueryResult<ReadonlySet<number>>[]) =>
+  results.map((result) => result.data)
+
 function DexGrid() {
   const { q = '', gen = '', types = [] } = Route.useSearch()
   const navigate = Route.useNavigate()
@@ -48,31 +58,20 @@ function DexGrid() {
   })
   const typeMembers = useQueries({
     queries: types.map((name) => typeMembersQuery(name)),
-    combine: (results) => results.map((result) => result.data),
+    combine: membersOf,
   })
 
+  const [draft, setDraft] = useDexSearch(q, (next) => onChange({ q: next }))
+
   // Filtering a thousand entries per keystroke would block the input.
-  const deferredQuery = useDeferredValue(q)
+  const deferredQuery = useDeferredValue(draft)
   const matches = useMemo(
     () => filterDex(index, deferredQuery, generationMembers, typeMembers),
     [index, deferredQuery, generationMembers, typeMembers],
   )
 
-  // Held as state, not a ref: the empty state unmounts this element, and a ref
-  // identity never changes, so an effect keyed on one would not re-attach.
-  const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
-  const columns = useColumns(scroller)
-  const rows = Math.ceil(matches.length / columns)
-
-  const virtualizer = useVirtualizer({
-    count: rows,
-    getScrollElement: () => scroller,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 4,
-  })
-
   function onChange(next: Partial<DexFilterState>) {
-    const merged = { q, gen, types, ...next }
+    const merged = { q: draft, gen, types, ...next }
     void navigate({
       search: {
         ...(merged.q ? { q: merged.q } : {}),
@@ -84,42 +83,65 @@ function DexGrid() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-11rem)] flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
       <DexFilters
-        value={{ q, gen, types }}
+        value={{ q: draft, gen, types }}
         generations={generations}
         showing={matches.length}
         total={index.length}
+        onQueryChange={setDraft}
         onChange={onChange}
       />
 
       {matches.length === 0 ? (
         <p className="py-16 text-center text-ink-lo">Nothing matches these filters.</p>
       ) : (
-        <div ref={setScroller} className="flex-1 overflow-y-auto">
-          <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-            {virtualizer.getVirtualItems().map((row) => (
-              <div
-                key={row.key}
-                // Rows are positioned, so the row gutter has to be padding: a grid
-                // `gap` only separates columns here.
-                className="absolute inset-x-0 top-0 grid gap-3 pb-3"
-                style={{
-                  height: row.size,
-                  transform: `translateY(${row.start}px)`,
-                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                }}
-              >
-                {matches
-                  .slice(row.index * columns, row.index * columns + columns)
-                  .map((entry) => (
-                    <PokemonCard key={entry.id} id={entry.id} name={entry.name} />
-                  ))}
-              </div>
+        <VirtualDexRows matches={matches} />
+      )}
+    </div>
+  )
+}
+
+/**
+ * Owns the virtualizer alone: React Compiler refuses to memoize any component
+ * holding `useVirtualizer`, so keeping it here leaves the rest of the dex
+ * compiled.
+ */
+function VirtualDexRows({ matches }: { matches: readonly DexEntry[] }) {
+  // Held as state, not a ref: the empty state unmounts this element, and a ref
+  // identity never changes, so an effect keyed on one would not re-attach.
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
+  const columns = useColumns(scroller)
+
+  // oxlint-disable-next-line react/incompatible-library -- the bail-out is contained to this component
+  const virtualizer = useVirtualizer({
+    count: Math.ceil(matches.length / columns),
+    getScrollElement: () => scroller,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 4,
+  })
+
+  return (
+    <div ref={setScroller} className="min-h-0 flex-1 overflow-y-auto">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((row) => (
+          <div
+            key={row.key}
+            // Rows are positioned, so the row gutter has to be padding: a grid
+            // `gap` only separates columns here.
+            className="absolute inset-x-0 top-0 grid gap-3 pb-3"
+            style={{
+              height: row.size,
+              transform: `translateY(${row.start}px)`,
+              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            }}
+          >
+            {matches.slice(row.index * columns, row.index * columns + columns).map((entry) => (
+              <PokemonCard key={entry.id} id={entry.id} name={entry.name} />
             ))}
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   )
 }
@@ -130,6 +152,10 @@ function useColumns(element: HTMLElement | null): number {
 
   useLayoutEffect(() => {
     if (!element) return
+    // Read once up front: waiting for the observer's first callback renders the
+    // whole grid at one column, and the virtualizer sizes for every row of it.
+    // oxlint-disable-next-line react/set-state-in-effect -- a measurement has no render-phase equivalent
+    setWidth(element.clientWidth)
     const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
     observer.observe(element)
     return () => observer.disconnect()

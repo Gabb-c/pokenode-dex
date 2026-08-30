@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, type CSSProperties } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import type { Pokemon, PokemonSpecies } from 'pokenode-ts'
@@ -12,15 +12,30 @@ import { StatBar } from '@/components/dex/StatBar'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { cleanFlavorText, dexNo, effectiveness, humanize, kilograms, metres } from '@/lib/format'
+import {
+  cleanFlavorText,
+  dexNo,
+  effectiveness,
+  generationLabel,
+  humanize,
+  kilograms,
+  metres,
+} from '@/lib/format'
 import { useLocalized } from '@/lib/language'
 import { notableMatchups, typeVar } from '@/lib/types'
 
 export const Route = createFileRoute('/pokemon/$name')({
-  loader: async ({ context, params }) => {
+  /**
+   * Species has to wait for the Pokémon it hangs off, but matchups and the
+   * evolution chain do not: started here rather than from their Suspense
+   * boundaries, they overlap instead of queueing behind the render.
+   */
+  loader: async ({ context: { queryClient }, params }) => {
     try {
-      const pokemon = await context.queryClient.ensureQueryData(pokemonQuery(params.name))
-      await context.queryClient.ensureQueryData(speciesQuery(pokemon))
+      const pokemon = await queryClient.ensureQueryData(pokemonQuery(params.name))
+      void queryClient.prefetchQuery(matchupsQuery(pokemon))
+      const species = await queryClient.ensureQueryData(speciesQuery(pokemon))
+      void queryClient.prefetchQuery(evolutionChainQuery(species))
     } catch (error) {
       if (isNotFound(error)) throw notFound()
       throw error
@@ -38,13 +53,15 @@ function PokemonDetail() {
   const { data: species } = useSuspenseQuery(speciesQuery(pokemon))
 
   const tint = typeVar(pokemon.types[0]?.type.name ?? '')
+  const style = { '--t': tint } as CSSProperties
   const displayName = useLocalized(species.names)?.name ?? humanize(pokemon.name)
   const genus = useLocalized(species.genera)?.genus
   const flavor = useLocalized(species.flavor_text_entries)?.flavor_text
 
   return (
-    <article className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+    <article className="mx-auto flex w-full max-w-[70rem] flex-col gap-6" style={style}>
+      {/* The rule under the name is the primary type: the page reads as this specimen's. */}
+      <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b-2 border-transparent pb-2 [border-image:linear-gradient(to_right,var(--t),transparent_60%)_1]">
         <span className="text-lg text-ink-lo" data-numeric>
           {dexNo(pokemon.id)}
         </span>
@@ -57,15 +74,18 @@ function PokemonDetail() {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
         <div className="flex flex-col gap-4">
-          <SpriteViewer id={pokemon.id} name={displayName} />
+          <SpriteViewer id={pokemon.id} name={displayName} tint={tint} />
           <Vitals pokemon={pokemon} species={species} />
         </div>
 
         <div className="flex flex-col gap-6">
           {flavor && (
-            <p className="panel p-4 text-ink-mid italic">{cleanFlavorText(flavor)}</p>
+            <div className="panel p-4">
+              {/* The panel holds the column; the measure holds the line length. */}
+              <p className="max-w-[62ch] text-ink-mid italic">{cleanFlavorText(flavor)}</p>
+            </div>
           )}
           <BaseStats pokemon={pokemon} tint={tint} />
           <Abilities pokemon={pokemon} />
@@ -82,21 +102,22 @@ function PokemonDetail() {
 }
 
 function Vitals({ pokemon, species }: { pokemon: Pokemon; species: PokemonSpecies }) {
+  // Mono is for figures, so a row says whether its value is one.
   const rows = [
-    ['Height', metres(pokemon.height)],
-    ['Weight', kilograms(pokemon.weight)],
-    ['Generation', humanize(species.generation.name.replace('generation-', 'gen '))],
-    ['Base exp.', pokemon.base_experience ? String(pokemon.base_experience) : '—'],
-    ['Capture rate', String(species.capture_rate)],
-    ['Growth', humanize(species.growth_rate.name)],
+    ['Height', metres(pokemon.height), true],
+    ['Weight', kilograms(pokemon.weight), true],
+    ['Generation', generationLabel(species.generation.name), false],
+    ['Base exp.', pokemon.base_experience ? String(pokemon.base_experience) : '—', true],
+    ['Capture rate', String(species.capture_rate), true],
+    ['Growth', humanize(species.growth_rate.name), false],
   ] as const
 
   return (
     <dl className="panel divide-y divide-line">
-      {rows.map(([label, value]) => (
+      {rows.map(([label, value, numeric]) => (
         <div key={label} className="flex items-center justify-between px-4 py-2">
           <dt className="text-micro uppercase text-ink-lo">{label}</dt>
-          <dd className="text-sm text-ink-hi" data-numeric>
+          <dd className="text-sm text-ink-hi" data-numeric={numeric ? '' : undefined}>
             {value}
           </dd>
         </div>

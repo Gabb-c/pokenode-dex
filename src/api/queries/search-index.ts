@@ -1,10 +1,13 @@
 import { queryOptions } from '@tanstack/react-query'
 import { resourceId } from 'pokenode-ts'
 import { scoped } from '../client'
+import { padDexNo } from '@/lib/format'
 
 export interface DexEntry {
   id: number
   name: string
+  /** The padded id, built here so filtering a keystroke allocates nothing. */
+  no: string
 }
 
 /**
@@ -20,7 +23,8 @@ export const searchIndexQuery = queryOptions({
   queryFn: async ({ signal }): Promise<DexEntry[]> => {
     const entries: DexEntry[] = []
     for await (const link of scoped(signal).pokemon.paginate('listPokemons', { pageSize: 500 })) {
-      entries.push({ id: resourceId(link), name: link.name })
+      const id = resourceId(link)
+      entries.push({ id, name: link.name, no: padDexNo(id) })
     }
     return entries.sort((a, b) => a.id - b.id)
   },

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { stats } from '@/api/client'
-import { clearAllCaches } from '@/api/query-client'
+import { clearAllCaches, l1Hits } from '@/api/query-client'
 import { transportLog, type ResponseSource, type TransportEvent } from '@/api/transport-log'
 
 const SOURCE_LABEL: Record<ResponseSource, string> = {
@@ -17,20 +17,23 @@ const SOURCE_TONE: Record<ResponseSource, string> = {
   revalidated: 'text-positive',
 }
 
+/** `performance.now()` deltas carry float noise the rail has no room for. */
+const ms = (value: number) => `${Math.round(value)} ms`
+
 function describe(event: TransportEvent): { tone: string; label: string; detail: string } {
   switch (event.kind) {
     case 'response':
       return {
         tone: SOURCE_TONE[event.source],
         label: SOURCE_LABEL[event.source],
-        detail: `${event.durationMs} ms`,
+        detail: ms(event.durationMs),
       }
     case 'request':
       return { tone: 'text-ink-lo', label: event.method.toLowerCase(), detail: '…' }
     case 'retry':
-      return { tone: 'text-caution', label: `retry ${event.attempt}`, detail: `${event.delayMs} ms` }
+      return { tone: 'text-caution', label: `retry ${event.attempt}`, detail: ms(event.delayMs) }
     case 'cancelled':
-      return { tone: 'text-ink-lo', label: 'cancelled', detail: `${event.durationMs} ms` }
+      return { tone: 'text-ink-lo', label: 'cancelled', detail: ms(event.durationMs) }
     case 'error':
       return { tone: 'text-negative', label: 'error', detail: event.message }
   }
@@ -51,14 +54,16 @@ export function StatusRail() {
     transportLog.getSnapshot,
     transportLog.getSnapshot,
   )
+  // The same store drives both: `stats` is reread on every transport event, so
+  // the tally and the event line can never disagree.
+  const counts = useSyncExternalStore(transportLog.subscribe, stats, stats)
+  // L1 answers without a transport event, so it needs its own signal.
+  const l1 = useSyncExternalStore(l1Hits.subscribe, l1Hits.get, l1Hits.get)
   const latest = snapshot.events.find((event) => event.kind !== 'request') ?? snapshot.events[0]
   const current = latest ? describe(latest) : undefined
-  // Read during render rather than held in the store: every response pushes an
-  // event, so the subscription above is what keeps these in step.
-  const counts = stats()
 
   return (
-    <footer className="sticky bottom-0 z-20 border-t border-line bg-surface-1/95 backdrop-blur">
+    <footer className="z-20 border-t border-line bg-surface-1/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-micro">
         <span className="text-ink-lo uppercase">transport</span>
 
@@ -77,10 +82,16 @@ export function StatusRail() {
         )}
 
         <span className="ml-auto flex items-center gap-4 text-ink-lo">
-          <Tally label="in flight" value={snapshot.inFlight} />
+          <Tally label="pending" value={snapshot.inFlight} />
+          <Tally label="L1" value={l1} />
           <Tally label="L2" value={counts.cache} />
           <Tally label="304" value={counts.revalidated} />
-          <Tally label="net" value={counts.roundTrips} />
+          <Tally label="net" value={counts.network} />
+          {counts.inFlight > 0 && <Tally label="coalesced" value={counts.inFlight} />}
+          {/* Only once retries have made it more than the round trips already shown. */}
+          {counts.roundTrips > counts.network + counts.revalidated && (
+            <Tally label="attempts" value={counts.roundTrips} />
+          )}
           {snapshot.cancelled > 0 && <Tally label="cancelled" value={snapshot.cancelled} />}
           {snapshot.errors > 0 && <Tally label="errors" value={snapshot.errors} />}
           <button
