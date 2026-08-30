@@ -1,0 +1,108 @@
+/* Field Terminal — design tokens. design.md carries the rationale for these values. */
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------- static */
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-panel: 6px;
+  --radius-well: 4px;
+
+  --ease-instrument: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-micro--letter-spacing: 0.06em;
+}
+
+/* Resolved at definition time so utilities follow the theme flip below. */
+@theme inline {
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink-hi: var(--ink-hi);
+  --color-ink-mid: var(--ink-mid);
+  --color-ink-lo: var(--ink-lo);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-caution: var(--caution);
+}
+
+/* ----------------------------------------------------------------- light */
+:root {
+  --surface-0: oklch(0.990 0.002 265);
+  --surface-1: oklch(0.975 0.003 265);
+  --surface-2: oklch(0.955 0.004 265);
+  --line: oklch(0.900 0.006 265);
+  --line-strong: oklch(0.820 0.008 265);
+  --ink-hi: oklch(0.220 0.010 265);
+  --ink-mid: oklch(0.450 0.010 265);
+  --ink-lo: oklch(0.515 0.010 265);
+  --accent: oklch(0.495 0.120 205);
+  --accent-ink: oklch(0.990 0.010 205);
+  --positive: oklch(0.480 0.140 150);
+  --negative: oklch(0.480 0.180 25);
+  --caution: oklch(0.520 0.130 75);
+
+  --type-normal: oklch(0.499 0.059 106.8);
+  --type-fire: oklch(0.497 0.127 52.6);
+  --type-water: oklch(0.477 0.144 263.8);
+  --type-electric: oklch(0.530 0.109 94.2);
+  --type-grass: oklch(0.514 0.152 135.6);
+  --type-ice: oklch(0.519 0.064 192.4);
+  --type-fighting: oklch(0.424 0.173 27.8);
+  --type-poison: oklch(0.426 0.170 328.5);
+  --type-ground: oklch(0.530 0.108 88.5);
+  --type-flying: oklch(0.497 0.137 294.4);
+  --type-psychic: oklch(0.485 0.192 5.6);
+  --type-bug: oklch(0.510 0.118 117.1);
+  --type-rock: oklch(0.495 0.102 97.9);
+  --type-ghost: oklch(0.414 0.098 303.1);
+  --type-dragon: oklch(0.425 0.245 286.7);
+  --type-dark: oklch(0.400 0.040 55.7);
+  --type-steel: oklch(0.527 0.031 285.6);
+  --type-fairy: oklch(0.497 0.105 349.3);
+}
+
+/* ------------------------------------------------------------------ dark */
+.dark {
+  --surface-0: oklch(0.180 0.008 265);
+  --surface-1: oklch(0.220 0.009 265);
+  --surface-2: oklch(0.260 0.010 265);
+  --line: oklch(0.320 0.012 265);
+  --line-strong: oklch(0.420 0.014 265);
+  --ink-hi: oklch(0.965 0.004 265);
+  --ink-mid: oklch(0.740 0.008 265);
+  --ink-lo: oklch(0.655 0.010 265);
+  --accent: oklch(0.800 0.130 205);
+  --accent-ink: oklch(0.180 0.030 205);
+  --positive: oklch(0.800 0.150 150);
+  --negative: oklch(0.750 0.150 25);
+  --caution: oklch(0.830 0.140 75);
+
+  --type-normal: oklch(0.819 0.059 106.8);
+  --type-fire: oklch(0.817 0.118 52.6);
+  --type-water: oklch(0.797 0.102 263.8);
+  --type-electric: oklch(0.880 0.160 94.2);
+  --type-grass: oklch(0.834 0.166 135.6);
+  --type-ice: oklch(0.869 0.064 192.4);
+  --type-fighting: oklch(0.744 0.156 27.8);
+  --type-poison: oklch(0.746 0.170 328.5);
+  --type-ground: oklch(0.860 0.111 88.5);
+  --type-flying: oklch(0.817 0.102 294.4);
+  --type-psychic: oklch(0.805 0.117 5.6);
+  --type-bug: oklch(0.830 0.158 117.1);
+  --type-rock: oklch(0.815 0.120 97.9);
+  --type-ghost: oklch(0.734 0.098 303.1);
+  --type-dragon: oklch(0.745 0.139 286.7);
+  --type-dark: oklch(0.720 0.040 55.7);
+  --type-steel: oklch(0.847 0.031 285.6);
+  --type-fairy: oklch(0.817 0.105 349.3);
+}

@@ -4,7 +4,30 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pokenode-dex</title>
+    <meta
+      name="description"
+      content="A Pokédex built on pokenode-ts — a typed PokéAPI client with zero runtime dependencies."
+    />
+    <title>Pokenode·Dex</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+
+    <script>
+      // Runs before first paint so the theme never flashes.
+      try {
+        const saved = localStorage.getItem('pokenode-dex:theme')
+        const dark = saved ? saved === 'dark'
+          : matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.classList.toggle('dark', dark)
+      } catch {
+        // Storage can be unavailable (private mode); the light default is fine.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
