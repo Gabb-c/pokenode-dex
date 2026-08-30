@@ -31,6 +31,18 @@ export const queryClient = new QueryClient({
 })
 
 /**
+ * What a loader wants from `queryClient.query`: whatever is cached, at any age,
+ * and a fetch only when there is nothing.
+ *
+ * This is the contract the deprecated `ensureQueryData` had. `staleTime:
+ * 'static'` states it for the one call without touching what the query's own
+ * observers treat as fresh, so the tier invariant above still holds.
+ */
+export function cached<T extends object>(options: T): T & { staleTime: 'static' } {
+  return { ...options, staleTime: 'static' }
+}
+
+/**
  * L1 hits, which nothing beneath this tier can see.
  *
  * A query answered from Query's own cache never reaches the transport, so it

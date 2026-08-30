@@ -10,7 +10,6 @@ const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreload: 'intent',
-  // Loaders read through the QueryClient, which owns staleness for both tiers.
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
 })

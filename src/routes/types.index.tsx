@@ -2,13 +2,14 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { defensiveProfileFrom } from 'pokenode-ts'
 import { allTypesQuery } from '@/api/queries/types'
+import { cached } from '@/api/query-client'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { effectiveness } from '@/lib/format'
 import { BATTLE_TYPES, typeVar } from '@/lib/types'
 
 export const Route = createFileRoute('/types/')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(allTypesQuery),
+  loader: ({ context }) => context.queryClient.query(cached(allTypesQuery)),
   component: TypeChart,
   errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
   pendingComponent: () => <p className="py-16 text-center text-ink-lo">Resolving types…</p>,

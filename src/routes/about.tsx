@@ -4,6 +4,7 @@ import clientSource from '@/api/client.ts?raw'
 import queryClientSource from '@/api/query-client.ts?raw'
 import searchIndexSource from '@/api/queries/search-index.ts?raw'
 import typeQueriesSource from '@/api/queries/types.ts?raw'
+import moveQueriesSource from '@/api/queries/moves.ts?raw'
 import cardSource from '@/components/dex/PokemonCard.tsx?raw'
 
 export const Route = createFileRoute('/about')({ component: About })
@@ -45,6 +46,13 @@ const FEATURES: Feature[] = [
       'A link carries what it points at, so resolveAll returns Type[] without being told. The concurrency cap is the library keeping the PokéAPI fair-use policy on your behalf.',
     source: typeQueriesSource,
     extract: 'export const matchupsQuery',
+  },
+  {
+    title: 'Choosing what not to follow',
+    blurb:
+      'A Pokémon carries its whole learnset as links — several hundred of them. The work is narrowing to the twenty a reader asked for before resolveAll follows any, and letting the concurrency cap pace the rest.',
+    source: moveQueriesSource,
+    extract: 'export const learnsetQuery',
   },
   {
     title: 'Sprites without a request',
