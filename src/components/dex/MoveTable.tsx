@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { LearnedMove } from '@/api/queries/moves'
 import { TypeChip } from './TypeChip'
 import { humanize } from '@/lib/format'
@@ -64,7 +65,15 @@ function MoveRow({ entry, showLevel }: { entry: LearnedMove; showLevel: boolean 
           {entry.level === 0 ? 'Evo.' : entry.level}
         </td>
       )}
-      <td className="p-2 text-ink-hi">{name}</td>
+      <td className="p-2">
+        <Link
+          to="/moves/$name"
+          params={{ name: move.name }}
+          className="text-ink-hi hover:text-accent"
+        >
+          {name}
+        </Link>
+      </td>
       <td className="p-2">
         <TypeChip name={move.type.name} />
       </td>

@@ -30,7 +30,11 @@ export function typeVar(name: string): string {
   return isBattleType(name) ? `var(--type-${name})` : 'var(--ink-lo)'
 }
 
-export type Matchups = Record<TypeName, number>
+/**
+ * Partial because a generation-scoped chart leaves out a type that did not
+ * exist yet: absent is not the same answer as neutral.
+ */
+export type Matchups = Partial<Record<TypeName, number>>
 
 /** Only the cells worth showing: neutral matchups carry no information. */
 export function notableMatchups(chart: Matchups) {
@@ -40,6 +44,7 @@ export function notableMatchups(chart: Matchups) {
 
   for (const name of BATTLE_TYPES) {
     const multiplier = chart[name]
+    if (multiplier === undefined) continue
     if (multiplier === 0) immunities.push(name)
     else if (multiplier > 1) weaknesses.push(name)
     else if (multiplier < 1) resistances.push(name)

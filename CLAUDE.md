@@ -67,7 +67,14 @@ should follow that shape — never call `api.*` directly from a query.
 
 All in `src/api/queries/*.ts` as `queryOptions` factories, never inline in
 components. Reference data (`generations`, `languages`, `all-types`,
-`search-index`, member sets) uses `staleTime: Infinity`.
+`damage-classes`, `search-index`, `move-index`, encounters, abilities, held
+items, member sets) uses `staleTime: Infinity`.
+
+The move list shows a type and a class per row without resolving a single move:
+`allTypesQuery` and `allDamageClassesQuery` carry the moves that belong to them,
+and `indexMoves` (`src/lib/move-filter.ts`) reads the grid backwards off those
+two cached queries. Resolving ~940 moves to fill the same columns is the thing
+that must not be reintroduced.
 
 ### External stores
 
@@ -94,16 +101,20 @@ edit it. The generator runs as a Vite plugin, and in `vite.config.ts` it must
 stay **first**, before the React transforms that compile its output.
 
 Filters live in the URL as typed search params (`validateSearch` in
-`src/routes/pokemon.index.tsx`), so any view is shareable. Absent rather than
-empty, so an unfiltered dex has a clean URL.
+`src/routes/pokemon.index.tsx`, `src/routes/moves.index.tsx`), so any view is
+shareable. `src/routes/pokemon.$name.tsx` carries four of them (vg, learn, ver,
+gen), so every `navigate` there has to spread the current search rather than
+replace it. Every param is absent rather than empty, so an unfiltered view has a
+clean URL.
 
 ### `about.tsx` reads the source
 
 `src/routes/about.tsx` imports real files with Vite's `?raw` and slices out
 named declarations via `extractDeclaration`. Renaming an exported binding in
 `src/api/client.ts`, `src/api/query-client.ts`, `src/api/queries/search-index.ts`,
-`src/api/queries/types.ts`, or `src/components/dex/PokemonCard.tsx` silently
-breaks a snippet on that page — no type error, no test failure. Update the
+`src/api/queries/types.ts`, `src/api/queries/moves.ts`, `src/lib/past-types.ts`,
+`src/lib/language.ts`, or `src/components/dex/PokemonCard.tsx` silently breaks a
+snippet on that page — no type error, no test failure. Update the
 `extract` string in `FEATURES` when you rename one.
 
 ## Styling rules

@@ -4,6 +4,7 @@ import { ThemeToggle } from './ThemeToggle'
 
 const NAV = [
   { to: '/pokemon', label: 'Dex' },
+  { to: '/moves', label: 'Moves' },
   { to: '/types', label: 'Types' },
   { to: '/about', label: 'How it works' },
 ] as const

@@ -24,7 +24,8 @@ ORDER.set('blue-japan', 0.2)
 /** Unknown to this version of the library — sorted past the ones it knows, never dropped. */
 const UNKNOWN = -1
 
-function orderOf(slug: string): number {
+/** Where a version group falls in release order. Shared with the flavour-text picker. */
+export function versionGroupOrder(slug: string): number {
   return ORDER.get(slug) ?? UNKNOWN
 }
 
@@ -52,7 +53,7 @@ export function versionGroupsOf(moves: readonly PokemonMove[]): string[] {
   for (const entry of moves) {
     for (const detail of entry.version_group_details) slugs.add(detail.version_group.name)
   }
-  return [...slugs].sort((a, b) => orderOf(b) - orderOf(a))
+  return [...slugs].sort((a, b) => versionGroupOrder(b) - versionGroupOrder(a))
 }
 
 /**
