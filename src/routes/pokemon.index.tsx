@@ -10,6 +10,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { generationMembersQuery, generationsQuery } from '@/api/queries/games'
 import { type DexEntry, searchIndexQuery } from '@/api/queries/search-index'
 import { typeMembersQuery } from '@/api/queries/types'
+import { cached } from '@/api/query-client'
 import { DexFilters, type DexFilterState } from '@/components/dex/DexFilters'
 import { PokemonCard } from '@/components/dex/PokemonCard'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -32,7 +33,7 @@ export const Route = createFileRoute('/pokemon/')({
 
     return { ...(q ? { q } : {}), ...(gen ? { gen } : {}), ...(types.length ? { types } : {}) }
   },
-  loader: ({ context }) => context.queryClient.ensureQueryData(searchIndexQuery),
+  loader: ({ context }) => context.queryClient.query(cached(searchIndexQuery)),
   component: DexGrid,
   errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
   pendingComponent: () => <p className="py-16 text-center text-ink-lo">Walking the dex…</p>,

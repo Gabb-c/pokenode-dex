@@ -35,7 +35,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex h-dvh flex-col">
       <TopBar />
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full w-full max-w-[1400px] flex-col px-4 py-6">
+        <div className="mx-auto flex min-h-full w-full max-w-350 flex-col px-4 py-6">
           {children}
         </div>
       </main>

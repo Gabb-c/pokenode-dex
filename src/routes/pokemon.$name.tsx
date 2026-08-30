@@ -1,13 +1,15 @@
 import { Suspense, type CSSProperties } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { noop, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import type { Pokemon, PokemonSpecies } from 'pokenode-ts'
 import { pokemonQuery, speciesQuery } from '@/api/queries/pokemon'
 import { evolutionChainQuery } from '@/api/queries/evolution'
+import { learnsetQuery } from '@/api/queries/moves'
 import { matchupsQuery } from '@/api/queries/types'
-import { isNotFound } from '@/api/query-client'
+import { cached, isNotFound } from '@/api/query-client'
 import { SpriteViewer } from '@/components/dex/SpriteViewer'
 import { EvolutionGraph } from '@/components/dex/EvolutionGraph'
+import { MoveTable } from '@/components/dex/MoveTable'
 import { StatBar } from '@/components/dex/StatBar'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -22,20 +24,40 @@ import {
   metres,
 } from '@/lib/format'
 import { useLocalized } from '@/lib/language'
+import { defaultVersionGroup, learnMethodsOf, versionGroupsOf } from '@/lib/learnset'
 import { notableMatchups, typeVar } from '@/lib/types'
 
+interface LearnsetSearch {
+  /** Absent until the reader picks one, so an untouched page has a clean URL. */
+  vg?: string
+  learn?: string
+}
+
 export const Route = createFileRoute('/pokemon/$name')({
+  validateSearch: (input: Record<string, unknown>): LearnsetSearch => {
+    // Only the shape is checked here; a slug this Pokémon has no data for falls
+    // back in the panel, which is the only place that knows what it carries.
+    const vg = typeof input.vg === 'string' ? input.vg : ''
+    const learn = typeof input.learn === 'string' ? input.learn : ''
+
+    return { ...(vg ? { vg } : {}), ...(learn ? { learn } : {}) }
+  },
   /**
    * Species has to wait for the Pokémon it hangs off, but matchups and the
    * evolution chain do not: started here rather than from their Suspense
    * boundaries, they overlap instead of queueing behind the render.
+   *
+   * The learnset is deliberately not among them. It is dozens of link fetches
+   * and it sits below the fold, so it is paid for when it is reached.
    */
   loader: async ({ context: { queryClient }, params }) => {
     try {
-      const pokemon = await queryClient.ensureQueryData(pokemonQuery(params.name))
-      void queryClient.prefetchQuery(matchupsQuery(pokemon))
-      const species = await queryClient.ensureQueryData(speciesQuery(pokemon))
-      void queryClient.prefetchQuery(evolutionChainQuery(species))
+      const pokemon = await queryClient.query(cached(pokemonQuery(params.name)))
+      // Opportunistic: a failure here is raised again by the Suspense boundary
+      // that actually reads the query, which is where the error UI lives.
+      void queryClient.query(matchupsQuery(pokemon)).catch(noop)
+      const species = await queryClient.query(cached(speciesQuery(pokemon)))
+      void queryClient.query(evolutionChainQuery(species)).catch(noop)
     } catch (error) {
       if (isNotFound(error)) throw notFound()
       throw error
@@ -59,8 +81,7 @@ function PokemonDetail() {
   const flavor = useLocalized(species.flavor_text_entries)?.flavor_text
 
   return (
-    <article className="mx-auto flex w-full max-w-[70rem] flex-col gap-6" style={style}>
-      {/* The rule under the name is the primary type: the page reads as this specimen's. */}
+    <article className="mx-auto flex w-full max-w-280 flex-col gap-6" style={style}>
       <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b-2 border-transparent pb-2 [border-image:linear-gradient(to_right,var(--t),transparent_60%)_1]">
         <span className="text-lg text-ink-lo" data-numeric>
           {dexNo(pokemon.id)}
@@ -95,6 +116,7 @@ function PokemonDetail() {
           <Suspense fallback={<Skeleton label="Evolution" lines={2} />}>
             <Evolution species={species} current={species.name} />
           </Suspense>
+          <Learnset pokemon={pokemon} />
         </div>
       </div>
     </article>
@@ -227,6 +249,92 @@ function Evolution({ species, current }: { species: PokemonSpecies; current: str
       </div>
     </section>
   )
+}
+
+/**
+ * One version group and one learn method at a time.
+ *
+ * Both pickers are built from the links the Pokémon already carries, so
+ * choosing costs nothing until a tab is opened — and only the open tab is
+ * resolved. The selection lives in the URL, so a learnset is shareable.
+ */
+function Learnset({ pokemon }: { pokemon: Pokemon }) {
+  const { vg, learn } = Route.useSearch()
+  const navigate = Route.useNavigate()
+
+  const groups = versionGroupsOf(pokemon.moves)
+  if (groups.length === 0) return null
+
+  const versionGroup = vg && groups.includes(vg) ? vg : (defaultVersionGroup(pokemon.moves) ?? groups[0])
+  const methods = learnMethodsOf(pokemon.moves, versionGroup)
+  const method = methods.some(({ name }) => name === learn) ? learn : methods[0]?.name
+
+  return (
+    <section className="panel p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="text-micro uppercase text-ink-lo">Moves</h2>
+        <label className="ml-auto flex items-center gap-2 text-micro uppercase text-ink-lo">
+          Version
+          <select
+            value={versionGroup}
+            // A method belongs to its version group, so picking a group clears it.
+            onChange={(event) => void navigate({ search: { vg: event.target.value }, replace: true })}
+            className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
+          >
+            {groups.map((group) => (
+              <option key={group} value={group}>
+                {humanize(group)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Learn method">
+        {methods.map(({ name, count }) => (
+          <button
+            key={name}
+            type="button"
+            aria-pressed={name === method}
+            onClick={() =>
+              void navigate({ search: { vg: versionGroup, learn: name }, replace: true })
+            }
+            className={`well px-2.5 py-1 text-sm ${
+              name === method ? 'text-ink-hi' : 'text-ink-lo hover:text-ink-mid'
+            }`}
+          >
+            {humanize(name)}
+            <span className="ml-2 text-micro text-ink-lo" data-numeric>
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {method && (
+        <div className="mt-3">
+          <Suspense fallback={<Skeleton label="Moves" lines={5} />}>
+            <LearnsetTable pokemon={pokemon} versionGroup={versionGroup} method={method} />
+          </Suspense>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function LearnsetTable({
+  pokemon,
+  versionGroup,
+  method,
+}: {
+  pokemon: Pokemon
+  versionGroup: string
+  method: string
+}) {
+  const { data: moves } = useSuspenseQuery(learnsetQuery(pokemon, versionGroup, method))
+  if (moves.length === 0) return <p className="text-sm text-ink-lo">Nothing learned this way.</p>
+
+  return <MoveTable moves={moves} />
 }
 
 function UnknownPokemon() {

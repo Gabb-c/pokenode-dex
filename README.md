@@ -11,7 +11,7 @@ prove it exists:
 | Typed endpoints | Everywhere. No `any`, no hand-written response types. |
 | `WebStorageCache` + `revalidate` | A cold reload paints from `localStorage`, then 304-revalidates. |
 | `.with({ signal, timeout })` | Fed the `AbortSignal` TanStack Query hands every `queryFn`. |
-| `resolveAll()` | Type matchups and the effectiveness chart — N typed link fetches, one query. |
+| `resolveAll()` | Learnsets, type matchups and the effectiveness chart — N typed link fetches, one query. |
 | `paginate()` | One walk of `listPokemons` builds the search index the filters and palette read. |
 | `localize()` | Names, genera and flavour text, in the language the API published them. |
 | `getPokemonSpriteUrl()` | Grid artwork with no extra request, and the sprite viewer's set/shiny/back/female switcher. |

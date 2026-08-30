@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { resourceId } from 'pokenode-ts'
 import { typeQuery } from '@/api/queries/types'
-import { isNotFound } from '@/api/query-client'
+import { cached, isNotFound } from '@/api/query-client'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { humanize } from '@/lib/format'
@@ -14,7 +14,7 @@ const LISTED = 120
 export const Route = createFileRoute('/types/$name')({
   loader: async ({ context, params }) => {
     try {
-      await context.queryClient.ensureQueryData(typeQuery(params.name))
+      await context.queryClient.query(cached(typeQuery(params.name)))
     } catch (error) {
       if (isNotFound(error)) throw notFound()
       throw error
