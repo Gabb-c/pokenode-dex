@@ -6,6 +6,7 @@ const NAV = [
   { to: '/pokemon', label: 'Dex' },
   { to: '/moves', label: 'Moves' },
   { to: '/types', label: 'Types' },
+  { to: '/play', label: 'Play' },
   { to: '/about', label: 'How it works' },
 ] as const
 

@@ -12,10 +12,10 @@ prove it exists:
 | `WebStorageCache` + `revalidate` | A cold reload paints from `localStorage`, then 304-revalidates. |
 | `.with({ signal, timeout })` | Fed the `AbortSignal` TanStack Query hands every `queryFn`. |
 | `resolveAll()` | Learnsets, type matchups, abilities, held items and the effectiveness chart — N typed link fetches, one query. |
-| `paginate()` | One walk each of `listPokemons` and `listMoves` builds the indexes the filters and palette read. |
+| `paginate()` | One walk each of `listPokemons` and `listMoves` builds the indexes the filters, the palette and the guessing game read. |
 | `relationsFor()` / `defensiveProfile()` | The type chart and a Pokémon's matchups, as any past generation knew them. |
 | `localize()` / `localizeAll()` | Names and genera in the language the API published them; flavour text narrowed to that language, then to the newest game. |
-| `getPokemonSpriteUrl()` | Grid artwork with no extra request, and the sprite viewer's set/shiny/back/female switcher. |
+| `getPokemonSpriteUrl()` | Grid artwork with no extra request, the sprite viewer's set/shiny/back/female switcher, and the silhouettes under `/play`. |
 | `PokenodeError` | Decides Query's retry policy and renders the error UI. |
 | `logger` | Feeds the status rail along the bottom of every page. |
 | `resolve()` on an unnamed link | The machine behind a TM, which the API points at by URL alone. |

@@ -39,6 +39,40 @@
     to { transform: scaleX(1); transform-origin: left; }
   }
 
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes art-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes art-shake {
+    0%, 100% { transform: none; }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(2px); }
+  }
+
+  @keyframes art-bloom {
+    from { opacity: 0; transform: scale(0.55); }
+    40% { opacity: 1; }
+    to { opacity: 0; transform: scale(1.2); }
+  }
+
+  @keyframes pip-drain {
+    from { transform: scale(1.5); background: var(--negative); border-color: var(--negative); }
+    to { transform: scale(1); }
+  }
+
+  @keyframes pop {
+    from { transform: scale(1.35); }
+    to { transform: scale(1); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -85,5 +119,62 @@
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: var(--radius-well);
+  }
+
+  /*
+   * The subject of a round, punched out of its own artwork. The transition is
+   * the reveal; the reduced-motion block above already flattens it.
+   */
+  .silhouette {
+    filter: brightness(0) invert(var(--silhouette-invert));
+    transition: filter 400ms var(--ease-instrument);
+  }
+
+  /* The artwork and the bloom behind it share one cell, so they stay centred
+     on each other without either being taken out of flow. */
+  .stage { display: grid; place-items: center; }
+  .stage > * { grid-area: 1 / 1; }
+
+  .art-in { animation: art-in 320ms var(--ease-instrument) both; }
+
+  /* Ordered after .art-in: a wrong verdict replaces the entrance rather than
+     compounding with it. */
+  .art-shake { animation: art-shake 340ms var(--ease-instrument); }
+
+  .art-bloom {
+    width: 16rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklch, var(--positive) 40%, transparent) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    animation: art-bloom 520ms var(--ease-instrument) both;
+  }
+
+  .rise { animation: rise 260ms var(--ease-instrument) both; }
+  .rise-fast { animation: rise 160ms var(--ease-instrument) both; }
+
+  .pop { display: inline-block; animation: pop 300ms var(--ease-instrument); }
+
+  /* Spent lives go hollow as well as red — the shape carries the count on its
+     own, per the colour-is-never-alone rule. */
+  .pip {
+    width: 0.5rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--ink-hi);
+    border: 1px solid transparent;
+    transition:
+      background-color 240ms var(--ease-instrument),
+      border-color 240ms var(--ease-instrument);
+  }
+
+  .pip-spent {
+    background: transparent;
+    border-color: var(--line);
+    animation: pip-drain 360ms var(--ease-instrument);
   }
 }

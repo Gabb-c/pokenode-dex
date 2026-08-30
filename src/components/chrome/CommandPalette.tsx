@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { searchIndexQuery, type DexEntry } from '@/api/queries/search-index'
+import { matchDex } from '@/lib/dex-match'
 import { dexNo, humanize } from '@/lib/format'
-
-const MAX_RESULTS = 8
 
 export function CommandPalette() {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -16,7 +15,7 @@ export function CommandPalette() {
   const [enabled, setEnabled] = useState(false)
   const { data: index } = useQuery({ ...searchIndexQuery, enabled })
 
-  const results = useMemo(() => match(index ?? [], query), [index, query])
+  const results = useMemo(() => matchDex(index ?? [], query), [index, query])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -103,17 +102,3 @@ export function CommandPalette() {
   )
 }
 
-function match(index: readonly DexEntry[], query: string): DexEntry[] {
-  const term = query.trim().toLowerCase()
-  if (!term) return index.slice(0, MAX_RESULTS)
-
-  // A name that starts with the term is a better answer than one that contains it.
-  const starts: DexEntry[] = []
-  const contains: DexEntry[] = []
-  for (const entry of index) {
-    if (entry.name.startsWith(term)) starts.push(entry)
-    else if (entry.name.includes(term) || String(entry.id) === term) contains.push(entry)
-    if (starts.length >= MAX_RESULTS) break
-  }
-  return [...starts, ...contains].slice(0, MAX_RESULTS)
-}
