@@ -14,7 +14,8 @@ export function MoveTable({ moves }: { moves: readonly LearnedMove[] }) {
   const showLevel = moves.some((entry) => entry.level > 0)
 
   return (
-    <div className="overflow-x-auto">
+    // Every picker change re-suspends this table, so its own mount is the swap.
+    <div className="fade-in overflow-x-auto">
       <table className="w-full min-w-max border-collapse text-sm">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">

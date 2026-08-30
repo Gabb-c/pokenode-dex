@@ -72,7 +72,16 @@ export function CommandPalette() {
         className="w-full border-b border-line bg-transparent px-4 py-3 text-ink-hi outline-none placeholder:text-ink-lo"
       />
 
-      <ul id="palette-results" role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto">
+      {/* Keyed on whether the index has landed, not on the query: a fade per
+          keystroke would be flicker, while the list replacing "Loading the dex…"
+          is a real state change. */}
+      <ul
+        key={index ? 'ready' : 'loading'}
+        id="palette-results"
+        role="listbox"
+        aria-label="Results"
+        className="fade-in max-h-80 overflow-y-auto"
+      >
         {results.length === 0 ? (
           <li className="px-4 py-3 text-sm text-ink-lo">
             {index ? 'Nothing matches.' : 'Loading the dex…'}
@@ -86,7 +95,7 @@ export function CommandPalette() {
               aria-selected={position === active}
               onMouseEnter={() => setActive(position)}
               onClick={() => go(entry)}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm ${
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm transition-colors ${
                 position === active ? 'bg-surface-2 text-ink-hi' : ''
               }`}
             >

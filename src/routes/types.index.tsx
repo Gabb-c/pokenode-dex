@@ -78,7 +78,8 @@ function TypeChart() {
         </div>
       </header>
 
-      <div className="panel w-fit max-w-full overflow-x-auto">
+      {/* Keyed on the generation, not per cell: the chart is eighteen squared. */}
+      <div key={gen ?? 'current'} className="fade-in panel w-fit max-w-full overflow-x-auto">
         <table className="min-w-max border-collapse text-micro">
           <caption className="sr-only">
             Damage multiplier of each attacking type against each defending type

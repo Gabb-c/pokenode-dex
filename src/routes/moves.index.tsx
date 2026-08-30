@@ -118,15 +118,18 @@ function MoveIndex() {
         </label>
 
         <p className="ml-auto text-micro uppercase text-ink-lo">
-          <output data-numeric>{matches.length}</output> of{' '}
-          <output data-numeric>{index.length}</output>
+          {/* Keyed on the count so a filter landing is visible in the figure. */}
+          <output key={matches.length} className="pop" data-numeric>
+            {matches.length}
+          </output>{' '}
+          of <output data-numeric>{index.length}</output>
         </p>
       </header>
 
       {matches.length === 0 ? (
-        <p className="py-16 text-center text-ink-lo">Nothing matches these filters.</p>
+        <p className="rise-fast py-16 text-center text-ink-lo">Nothing matches these filters.</p>
       ) : (
-        <VirtualMoveRows matches={matches} />
+        <VirtualMoveRows matches={matches} signature={`${deferredQuery}|${type}|${damageClass}`} />
       )}
     </div>
   )
@@ -136,7 +139,14 @@ function MoveIndex() {
  * Owns the virtualizer alone, for the reason the dex grid documents: the React
  * Compiler bails out of any component holding one.
  */
-function VirtualMoveRows({ matches }: { matches: readonly MoveRow[] }) {
+function VirtualMoveRows({
+  matches,
+  /** What the result set is of. The list fades when it changes, never on scroll. */
+  signature,
+}: {
+  matches: readonly MoveRow[]
+  signature: string
+}) {
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
 
   // oxlint-disable-next-line react/incompatible-library -- the bail-out is contained to this component
@@ -149,7 +159,13 @@ function VirtualMoveRows({ matches }: { matches: readonly MoveRow[] }) {
 
   return (
     <div ref={setScroller} className="panel min-h-0 flex-1 overflow-y-auto">
-      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+      {/* Container, not row: rows mount and unmount as they scroll. See the
+          dex grid for why this is not on the scroller either. */}
+      <div
+        key={signature}
+        className="fade-in relative w-full"
+        style={{ height: virtualizer.getTotalSize() }}
+      >
         {virtualizer.getVirtualItems().map((item) => {
           const row = matches[item.index]
           return (

@@ -20,9 +20,27 @@ function prefersDark(): boolean {
   return matchMedia('(prefers-color-scheme: dark)').matches
 }
 
+/** Mirrors `--dur-base`; the class has to outlive the transition it enables. */
+const FADE_MS = 240
+
+let fading: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * The palette swap, cross-faded.
+ *
+ * Only ever runs on a real flip — the inline script in `index.html` sets the
+ * class before first paint, so there is no initial application here to guard
+ * against. `theming` is held for the length of the transition and then dropped;
+ * index.css explains why it is not simply left on.
+ */
 function apply() {
+  const root = document.documentElement
+  root.classList.add('theming')
+  clearTimeout(fading)
+  fading = setTimeout(() => root.classList.remove('theming'), FADE_MS)
+
   const dark = choice === 'system' ? prefersDark() : choice === 'dark'
-  document.documentElement.classList.toggle('dark', dark)
+  root.classList.toggle('dark', dark)
 }
 
 function setTheme(next: ThemeChoice) {

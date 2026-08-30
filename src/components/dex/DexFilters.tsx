@@ -66,7 +66,11 @@ export function DexFilters({
         </label>
 
         <span className="text-micro text-ink-lo">
-          <output data-numeric>{showing}</output> of <output data-numeric>{total}</output>
+          {/* Keyed on the count so a filter landing is visible in the figure. */}
+          <output key={showing} className="pop" data-numeric>
+            {showing}
+          </output>{' '}
+          of <output data-numeric>{total}</output>
         </span>
 
         {filtered && (
@@ -93,7 +97,9 @@ export function DexFilters({
               aria-pressed={active}
               onClick={() => toggleType(name)}
               style={{ '--t': typeVar(name) } as CSSProperties}
-              className={`type-chip transition-opacity ${active ? '' : 'opacity-45 hover:opacity-80'}`}
+              className={`type-chip transition-[opacity,background-color,border-color] ${
+                active ? '' : 'opacity-45 hover:opacity-80'
+              }`}
             >
               {name}
             </button>

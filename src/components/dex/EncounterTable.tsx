@@ -21,7 +21,9 @@ export function EncounterTable({ rows }: { rows: readonly EncounterRow[] }) {
   const conditional = rows.some((row) => row.conditions.length > 0)
 
   return (
-    <div className="overflow-x-auto">
+    // Keyed on the version by its caller: the rows are filtered client-side, so
+    // nothing here would otherwise remount when the picker moves.
+    <div className="fade-in overflow-x-auto">
       <table className="w-full min-w-max border-collapse text-sm">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">

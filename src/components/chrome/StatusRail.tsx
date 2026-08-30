@@ -63,12 +63,20 @@ export function StatusRail() {
   const current = latest ? describe(latest) : undefined
 
   return (
-    <footer className="z-20 border-t border-line bg-surface-1/95 backdrop-blur">
+    <footer className="relative z-20 border-t border-line bg-surface-1/95 backdrop-blur">
+      {/* Rides the top border while requests are outstanding — the same count
+          the pending tally reports, in the shape of the wait. */}
+      {snapshot.inFlight > 0 && <span aria-hidden className="rail-sweep" />}
+
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-micro">
         <span className="text-ink-lo uppercase">transport</span>
 
         {latest && current ? (
-          <span className="flex min-w-0 items-center gap-2">
+          // Keyed on the event, so a tier change arrives rather than replaces.
+          <span
+            key={`${latest.kind}:${latest.url}`}
+            className="rise-fast flex min-w-0 items-center gap-2"
+          >
             <span className={current.tone}>{current.label}</span>
             <span className="truncate font-mono text-ink-mid" title={latest.url}>
               {endpoint(latest.url)}
@@ -111,7 +119,10 @@ function Tally({ label, value }: { label: string; value: number }) {
   return (
     <span className="flex items-center gap-1">
       {label}
-      <output className="text-ink-hi">{value}</output>
+      {/* Keyed on the figure so each increment restarts the pop. */}
+      <output key={value} className="pop text-ink-hi">
+        {value}
+      </output>
     </span>
   )
 }

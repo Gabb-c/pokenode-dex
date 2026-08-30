@@ -4,6 +4,7 @@ import { CommandPalette } from '@/components/chrome/CommandPalette'
 import { StatusRail } from '@/components/chrome/StatusRail'
 import { TopBar } from '@/components/chrome/TopBar'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { useRouteEnter } from '@/lib/motion'
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
@@ -29,13 +30,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * `main` is the only scroll container. The bar and the rail are pinned by being
  * its flex siblings rather than by `sticky`, so nothing has to know how tall
  * they are — they wrap to two lines on a phone and the dex still fits between.
+ *
+ * The entrance animation puts a `transform` on the wrapper below, which makes
+ * it the containing block for any `position: fixed` descendant. Anything that
+ * has to escape the page belongs beside `main`, not inside it — which is where
+ * the palette's `<dialog>` and the rail already are.
  */
 function Shell({ children }: { children: React.ReactNode }) {
+  const enter = useRouteEnter()
+
   return (
     <div className="flex h-dvh flex-col">
       <TopBar />
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full w-full max-w-350 flex-col px-4 py-6">
+        <div className={`${enter} mx-auto flex min-h-full w-full max-w-350 flex-col px-4 py-6`}>
           {children}
         </div>
       </main>

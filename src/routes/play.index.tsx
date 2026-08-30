@@ -26,7 +26,7 @@ function PlayIndex() {
 
       <Link
         to="/play/silhouette"
-        className="panel flex max-w-md flex-col gap-1 p-4 hover:border-line-strong"
+        className="panel flex max-w-md flex-col gap-1 p-4 transition-colors hover:border-line-strong"
       >
         <h2 className="text-lg">Who&rsquo;s that Pokémon?</h2>
         <p className="text-sm text-ink-mid">

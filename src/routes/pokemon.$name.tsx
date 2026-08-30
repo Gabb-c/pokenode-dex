@@ -378,7 +378,7 @@ function Encounters({ pokemon }: { pokemon: Pokemon }) {
       </div>
 
       <div className="mt-3">
-        <EncounterTable rows={rows} />
+        <EncounterTable key={version} rows={rows} />
       </div>
     </section>
   )
@@ -410,7 +410,10 @@ function Matchups({ pokemon }: { pokemon: Pokemon }) {
           />
         </div>
       </div>
-      <Suspense fallback={<Skeleton label="Defensive matchups" />}>
+      {/* Keyed on the chart being read: both queries are cached, so switching
+          generation resolves without re-suspending and would otherwise swap in
+          place. */}
+      <Suspense key={search.gen ?? 'current'} fallback={<Skeleton label="Defensive matchups" />}>
         {search.gen ? (
           <PastChart pokemon={pokemon} generation={search.gen} />
         ) : (
@@ -443,7 +446,7 @@ function MatchupGroups({ chart }: { chart: MatchupChart }) {
   ] as const
 
   return (
-    <div className="mt-3 flex flex-col gap-3">
+    <div className="fade-in mt-3 flex flex-col gap-3">
       {groups.map(([label, names]) =>
         names.length === 0 ? null : (
           <div key={label} className="flex flex-wrap items-center gap-2">

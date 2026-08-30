@@ -73,11 +73,33 @@
     to { transform: scale(1); }
   }
 
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* A duplicate of `rise` under a second name, so alternating the two class
+     names changes `animation-name` and replays the entrance. The two must stay
+     identical — a change to one is invisible until the other navigation. */
+  @keyframes rise-alt {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
+      /* Delays too, or a staggered series with `both` fill holds each item at
+         its from-state and flashes in one by one. */
+      animation-delay: -1ms !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
       scroll-behavior: auto !important;
     }
   }
@@ -154,8 +176,25 @@
     animation: art-bloom 520ms var(--ease-instrument) both;
   }
 
-  .rise { animation: rise 260ms var(--ease-instrument) both; }
-  .rise-fast { animation: rise 160ms var(--ease-instrument) both; }
+  /*
+   * Arrival. `.rise-a` / `.rise-b` are the page entrance: the same animation
+   * under two names, which `useRouteEnter` alternates so a navigation replays
+   * it without remounting the route.
+   *
+   * The delay slot reads `--stagger-delay` rather than being set by `.stagger`
+   * as a longhand: an `animation` shorthand resets `animation-delay`, so a
+   * longhand would survive only while it stayed declared after every one of
+   * these rules.
+   */
+  .rise,
+  .rise-a { animation: rise var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+  .rise-b { animation: rise-alt var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+  .rise-fast { animation: rise var(--dur-quick) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+
+  .fade-in { animation: fade var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+
+  /* Capped, so a long evolution chain does not cascade for a second. */
+  .stagger { --stagger-delay: calc(min(var(--i, 0), 5) * 60ms); }
 
   .pop { display: inline-block; animation: pop 300ms var(--ease-instrument); }
 
@@ -168,13 +207,78 @@
     background: var(--ink-hi);
     border: 1px solid transparent;
     transition:
-      background-color 240ms var(--ease-instrument),
-      border-color 240ms var(--ease-instrument);
+      background-color var(--dur-base) var(--ease-instrument),
+      border-color var(--dur-base) var(--ease-instrument);
   }
 
   .pip-spent {
     background: transparent;
     border-color: var(--line);
     animation: pip-drain 360ms var(--ease-instrument);
+  }
+
+  /*
+   * A native <dialog> has no open or close transition of its own, and both ends
+   * of one are discrete: `display` and `overlay` flip as the top layer unwinds,
+   * so they need `allow-discrete` to stay animatable. `@starting-style` supplies
+   * the from-state the first paint would otherwise skip.
+   */
+  dialog {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition:
+      opacity var(--dur-base) var(--ease-instrument),
+      transform var(--dur-base) var(--ease-instrument),
+      overlay var(--dur-base) allow-discrete,
+      display var(--dur-base) allow-discrete;
+  }
+
+  dialog[open] { opacity: 1; transform: none; }
+
+  dialog::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-instrument),
+      overlay var(--dur-base) allow-discrete,
+      display var(--dur-base) allow-discrete;
+  }
+
+  dialog[open]::backdrop { opacity: 1; }
+
+  @starting-style {
+    dialog[open] { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    dialog[open]::backdrop { opacity: 0; }
+  }
+
+  /* Rides the rail's own top border while requests are outstanding. Reduced
+     motion collapses it to one frame, which is right: the pending tally beside
+     it already carries the count. */
+  .rail-sweep {
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 1px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .rail-sweep::after {
+    content: "";
+    display: block;
+    width: 30%;
+    height: 100%;
+    background: var(--accent);
+    animation: sweep 1100ms var(--ease-instrument) infinite;
+  }
+
+  /*
+   * Held for one frame by `applyTheme`, so the palette swap cross-fades. Scoped
+   * to that frame rather than left on: a standing `transition: color` on every
+   * element makes every hover in the app feel a step behind.
+   */
+  html.theming, html.theming * {
+    transition:
+      background-color var(--dur-base) var(--ease-instrument),
+      border-color var(--dur-base) var(--ease-instrument),
+      color var(--dur-base) var(--ease-instrument);
   }
 }

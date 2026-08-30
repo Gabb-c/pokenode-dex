@@ -80,7 +80,7 @@ export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
     >
       <div className="grid h-56 place-items-center">
         {missing ? (
-          <p className="text-center text-micro text-ink-lo">
+          <p className="fade-in text-center text-micro text-ink-lo">
             The sprite repository has no image for this combination.
           </p>
         ) : (
@@ -91,7 +91,7 @@ export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
             decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setFailedUrl(url)}
-            className="max-h-56 max-w-full object-contain"
+            className="fade-in max-h-56 max-w-full object-contain"
           />
         )}
       </div>
