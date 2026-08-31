@@ -158,7 +158,7 @@ function VirtualMoveRows({
   })
 
   return (
-    <div ref={setScroller} className="panel min-h-0 flex-1 overflow-y-auto">
+    <div ref={setScroller} className="panel min-h-0 flex-1 overflow-y-auto overscroll-contain">
       {/* Container, not row: rows mount and unmount as they scroll. See the
           dex grid for why this is not on the scroller either. */}
       <div

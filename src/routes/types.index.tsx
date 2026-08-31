@@ -79,7 +79,12 @@ function TypeChart() {
       </header>
 
       {/* Keyed on the generation, not per cell: the chart is eighteen squared. */}
-      <div key={gen ?? 'current'} className="fade-in panel w-fit max-w-full overflow-x-auto">
+      {/* An 18×18 matrix is the one table that genuinely wants a sideways
+          scroll; `overscroll-x-contain` keeps the swipe out of the page. */}
+      <div
+        key={gen ?? 'current'}
+        className="fade-in panel w-fit max-w-full overflow-x-auto overscroll-x-contain"
+      >
         <table className="min-w-max border-collapse text-micro">
           <caption className="sr-only">
             Damage multiplier of each attacking type against each defending type

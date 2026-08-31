@@ -34,6 +34,23 @@
 
   ::selection { background: var(--accent); color: var(--accent-ink); }
 
+  /*
+   * Touch — two platform constraints no token can express.
+   *
+   * iOS Safari zooms into any form control under 16px on focus and never zooms
+   * back out, so a `text-sm` filter field strands the reader at 1.3× with no
+   * way back. And the dense controls here sit at 20–22px, under the 24px
+   * WCAG 2.5.8 asks for; 2rem is the house minimum, comfortable without turning
+   * a row of eighteen type filters into half a screen.
+   *
+   * Both have to shout. Tailwind emits its utilities in a later layer than this
+   * one, so `text-micro` and `text-sm` would otherwise win on specificity order.
+   */
+  @media (pointer: coarse) {
+    input, select, textarea { font-size: max(1rem, 1em) !important; }
+    button, select { min-height: 2rem; }
+  }
+
   @keyframes stat-fill {
     from { transform: scaleX(0); transform-origin: left; }
     to { transform: scaleX(1); transform-origin: left; }
@@ -93,9 +110,9 @@
 
   /*
    * A figure that attacked, which none of `rise` / `fade` / `pop` says. The
-   * nudge is toward the viewer rather than toward the opponent: the two
-   * combatants stack on a narrow screen and swap sides on a wide one, so a
-   * horizontal lunge would point the wrong way half the time.
+   * nudge is toward the viewer rather than toward the opponent: the foe holds
+   * the left column and the player the right, so one horizontal lunge would
+   * point the wrong way for whichever of them used it.
    */
   @keyframes battle-lunge {
     0% { transform: translateY(0) scale(1); }
@@ -156,6 +173,13 @@
     color: var(--t);
     background: color-mix(in oklch, var(--t) 12%, var(--surface-1));
     border: 1px solid color-mix(in oklch, var(--t) 28%, transparent);
+  }
+
+  /* A chip is a target as often as it is a label — the dex filters are eighteen
+     of them. Lifts the pill to the 2rem the base layer asks of every control;
+     it has to live here, after the rule whose shorthand it is overriding. */
+  @media (pointer: coarse) {
+    .type-chip { padding-block: 0.4375rem; }
   }
 
   .panel {

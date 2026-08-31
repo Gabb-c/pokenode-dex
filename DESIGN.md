@@ -133,6 +133,17 @@ than something each table remembers.
 
 - Content maxes at `1400px`. The top bar and status rail are sticky; the main
   column scrolls between them.
+- **The shell is fixed and only `main` scrolls**, on a phone as much as a desk.
+  That costs the mobile address bar's auto-hide, and buys a status rail that is
+  never scrolled away from — which is the point of the app. The bar and the rail
+  are held to ~92px and ~44px on a phone so the trade stays worth making: the bar
+  gives the nav a row of its own below `sm`, and the rail scrolls sideways rather
+  than wrapping to three lines.
+- **A phone is the narrow case, not the broken one.** Anything the reader acts on
+  — a move menu, a guess field, a filter — belongs on screen with whatever it
+  acts on, at 375×667 and up. The battle is the worked example: its two
+  combatants sit side by side at *every* width, because stacking them put the
+  scene at 500px and pushed the move menu below the fold.
 - Radii are tight: `--radius-panel: 6px`, `--radius-well: 4px`, chips fully round.
 - The dex grid is virtualized by row, with the column count derived from the
   container width so the virtualizer always knows the row height.
@@ -204,6 +215,18 @@ Non-negotiable, and checked as part of the build where a machine can check it:
 
 - Every type is identified by its **name**, not only its colour.
 - All 134 colour pairings clear 4.5:1 — enforced by `check:contrast`.
+- **Every control clears 2rem on a coarse pointer**, against the 24px WCAG 2.5.8
+  asks for. Enforced once, in `index.css`, rather than per component: `button`
+  and `select` take a `min-height` and `.type-chip` takes the padding that lifts
+  a chip-shaped button with them.
+- **No form control is under 16px on a coarse pointer.** iOS Safari zooms into
+  anything smaller on focus and never zooms back out. Same block in `index.css`,
+  and it carries `!important` deliberately — Tailwind emits its utilities in a
+  later layer, so `text-sm` would otherwise win.
+- Nothing is reachable by shortcut alone. The command palette answers ⌘K *and* a
+  button in the top bar, because a phone has no ⌘K.
+- `autoFocus` is for fine pointers only. On a phone it answers with the on-screen
+  keyboard, over the content the field is about.
 - Stat bars are meters with real values.
 - The palette traps focus and closes on Escape (native `<dialog>`).
 - All motion respects `prefers-reduced-motion`.

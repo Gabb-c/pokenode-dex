@@ -8,6 +8,13 @@ const SUGGESTIONS = 5
 /** One letter matches eight Pokémon, which would hand the round away. */
 const MIN_TERM = 2
 
+/**
+ * A phone answers an autofocused field with the on-screen keyboard, which covers
+ * the silhouette the round is about before it has been looked at. A keyboard
+ * that is already there costs nothing, so only a fine pointer gets the focus.
+ */
+const AUTOFOCUS = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches
+
 interface GuessBoxProps {
   index: readonly DexEntry[]
   onGuess: (name: string) => void
@@ -48,7 +55,7 @@ export function GuessBox({
         aria-controls="guess-results"
         aria-activedescendant={open ? `guess-${results[active].id}` : undefined}
         aria-label={label}
-        autoFocus
+        autoFocus={AUTOFOCUS}
         autoComplete="off"
         value={query}
         placeholder={placeholder}

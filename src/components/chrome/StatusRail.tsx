@@ -68,14 +68,24 @@ export function StatusRail() {
           the pending tally reports, in the shape of the wait. */}
       {snapshot.inFlight > 0 && <span aria-hidden className="rail-sweep" />}
 
-      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-micro">
-        <span className="text-ink-lo uppercase">transport</span>
+      {/*
+       * One row on a phone, swiped rather than wrapped.
+       *
+       * Wrapping put the rail at three rows and ~76px of a 667px screen. None of
+       * the tallies can be dropped — they answer three different questions — so
+       * the row scrolls instead, and `overscroll-x-contain` keeps that swipe off
+       * the page behind it.
+       */}
+      <div className="mx-auto flex max-w-[1400px] items-center gap-x-5 overflow-x-auto overscroll-x-contain px-4 py-1.5 text-micro sm:flex-wrap sm:gap-y-1 sm:overflow-x-visible">
+        <span className="shrink-0 text-ink-lo uppercase">transport</span>
 
         {latest && current ? (
           // Keyed on the event, so a tier change arrives rather than replaces.
           <span
             key={`${latest.kind}:${latest.url}`}
-            className="rise-fast flex min-w-0 items-center gap-2"
+            // Truncation is for the wrapped rail; the scrolling one shows the
+            // whole endpoint and lets the reader swipe to it.
+            className="rise-fast flex shrink-0 items-center gap-2 sm:min-w-0 sm:shrink"
           >
             <span className={current.tone}>{current.label}</span>
             <span className="truncate font-mono text-ink-mid" title={latest.url}>
@@ -86,10 +96,10 @@ export function StatusRail() {
             </span>
           </span>
         ) : (
-          <span className="text-ink-lo">idle</span>
+          <span className="shrink-0 text-ink-lo">idle</span>
         )}
 
-        <span className="ml-auto flex items-center gap-4 text-ink-lo">
+        <span className="ml-auto flex shrink-0 items-center gap-4 text-ink-lo">
           <Tally label="pending" value={snapshot.inFlight} />
           <Tally label="L1" value={l1} />
           <Tally label="L2" value={counts.cache} />
@@ -105,7 +115,7 @@ export function StatusRail() {
           <button
             type="button"
             onClick={() => void clearAllCaches().then(() => location.reload())}
-            className="rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
+            className="shrink-0 rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
           >
             clear caches
           </button>

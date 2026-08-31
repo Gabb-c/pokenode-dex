@@ -130,7 +130,7 @@ function VirtualDexRows({
   })
 
   return (
-    <div ref={setScroller} className="min-h-0 flex-1 overflow-y-auto">
+    <div ref={setScroller} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
       {/* The fade sits here rather than on the scroller — keying that would
           rebuild the ResizeObserver and the virtualizer on every keystroke —
           and rather than on a row, which mounts and unmounts as it scrolls.

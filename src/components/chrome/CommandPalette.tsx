@@ -4,6 +4,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { searchIndexQuery, type DexEntry } from '@/api/queries/search-index'
 import { matchDex } from '@/lib/dex-match'
 import { dexNo, humanize } from '@/lib/format'
+import { onOpenCommandPalette } from '@/lib/palette'
 
 export function CommandPalette() {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -18,16 +19,23 @@ export function CommandPalette() {
   const results = useMemo(() => matchDex(index ?? [], query), [index, query])
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return
-      event.preventDefault()
+    const toggle = () => {
       setEnabled(true)
       const dialog = dialogRef.current
       if (dialog?.open) dialog.close()
       else dialog?.showModal()
     }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return
+      event.preventDefault()
+      toggle()
+    }
     addEventListener('keydown', onKeyDown)
-    return () => removeEventListener('keydown', onKeyDown)
+    const unsubscribe = onOpenCommandPalette(toggle)
+    return () => {
+      removeEventListener('keydown', onKeyDown)
+      unsubscribe()
+    }
   }, [])
 
   function go(entry: DexEntry | undefined) {
@@ -42,6 +50,8 @@ export function CommandPalette() {
       ref={dialogRef}
       aria-label="Search the dex"
       onClose={() => setActive(0)}
+      // No display utility here: an author `display` would beat the UA's
+      // `dialog:not([open]) { display: none }` and leave the palette on screen.
       className="panel m-auto w-[min(32rem,90vw)] bg-surface-1 p-0 text-ink-mid backdrop:bg-black/50"
     >
       <input
@@ -80,7 +90,9 @@ export function CommandPalette() {
         id="palette-results"
         role="listbox"
         aria-label="Results"
-        className="fade-in max-h-80 overflow-y-auto"
+        // The keyboard takes half a phone, so the cap follows the viewport that
+        // is left rather than a fixed 20rem.
+        className="fade-in max-h-[min(20rem,55dvh)] overflow-y-auto overscroll-contain"
       >
         {results.length === 0 ? (
           <li className="px-4 py-3 text-sm text-ink-lo">
