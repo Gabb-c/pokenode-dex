@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { searchIndexQuery } from '@/api/queries/search-index'
 import { cached } from '@/api/query-client'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { readBattleWins } from '@/lib/battle-record'
 import { readBestStreak } from '@/lib/best-streak'
 
 export const Route = createFileRoute('/play/')({
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/play/')({
 
 function PlayIndex() {
   const best = readBestStreak()
+  const wins = readBattleWins()
 
   return (
     <section className="flex flex-col gap-4">
@@ -24,21 +26,40 @@ function PlayIndex() {
         </p>
       </header>
 
-      <Link
-        to="/play/silhouette"
-        className="panel flex max-w-md flex-col gap-1 p-4 transition-colors hover:border-line-strong"
-      >
-        <h2 className="text-lg">Who&rsquo;s that Pokémon?</h2>
-        <p className="text-sm text-ink-mid">
-          A silhouette, a name and three lives. Type the answer; the streak ends when the
-          lives do.
-        </p>
-        {best > 0 && (
-          <p className="text-micro uppercase text-ink-lo">
-            Best streak <output data-numeric>{best}</output>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link
+          to="/play/silhouette"
+          className="panel flex flex-col gap-1 p-4 transition-colors hover:border-line-strong"
+        >
+          <h2 className="text-lg">Who&rsquo;s that Pokémon?</h2>
+          <p className="text-sm text-ink-mid">
+            A silhouette, a name and three lives. Type the answer; the streak ends when the
+            lives do.
           </p>
-        )}
-      </Link>
+          {best > 0 && (
+            <p className="text-micro uppercase text-ink-lo">
+              Best streak <output data-numeric>{best}</output>
+            </p>
+          )}
+        </Link>
+
+        <Link
+          to="/play/battle"
+          search={{}}
+          className="panel flex flex-col gap-1 p-4 transition-colors hover:border-line-strong"
+        >
+          <h2 className="text-lg">Battle</h2>
+          <p className="text-sm text-ink-mid">
+            One on one at level 50. Four moves off the real learnset, the type chart the dex
+            already holds, and the damage formula the games use.
+          </p>
+          {wins > 0 && (
+            <p className="text-micro uppercase text-ink-lo">
+              Wins <output data-numeric>{wins}</output>
+            </p>
+          )}
+        </Link>
+      </div>
     </section>
   )
 }

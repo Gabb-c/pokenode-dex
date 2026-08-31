@@ -11,9 +11,17 @@ const MIN_TERM = 2
 interface GuessBoxProps {
   index: readonly DexEntry[]
   onGuess: (name: string) => void
+  /** Overridden where the box is choosing a Pokémon rather than naming one. */
+  label?: string
+  placeholder?: string
 }
 
-export function GuessBox({ index, onGuess }: GuessBoxProps) {
+export function GuessBox({
+  index,
+  onGuess,
+  label = 'Name the Pokémon',
+  placeholder = "Who's that Pokémon?",
+}: GuessBoxProps) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
 
@@ -39,11 +47,11 @@ export function GuessBox({ index, onGuess }: GuessBoxProps) {
         aria-expanded={open}
         aria-controls="guess-results"
         aria-activedescendant={open ? `guess-${results[active].id}` : undefined}
-        aria-label="Name the Pokémon"
+        aria-label={label}
         autoFocus
         autoComplete="off"
         value={query}
-        placeholder="Who's that Pokémon?"
+        placeholder={placeholder}
         onChange={(event) => {
           setQuery(event.target.value)
           setActive(0)

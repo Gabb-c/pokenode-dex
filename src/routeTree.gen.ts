@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as MovesIndexRouteImport } from './routes/moves.index'
 import { Route as MovesNameRouteImport } from './routes/moves.$name'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
+import { Route as PlayBattleRouteImport } from './routes/play.battle'
 import { Route as PlaySilhouetteRouteImport } from './routes/play.silhouette'
 import { Route as PokemonIndexRouteImport } from './routes/pokemon.index'
 import { Route as PokemonNameRouteImport } from './routes/pokemon.$name'
@@ -43,6 +44,11 @@ const MovesNameRoute = MovesNameRouteImport.update({
 const PlayIndexRoute = PlayIndexRouteImport.update({
   id: '/play/',
   path: '/play/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayBattleRoute = PlayBattleRouteImport.update({
+  id: '/play/battle',
+  path: '/play/battle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaySilhouetteRoute = PlaySilhouetteRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/moves/$name': typeof MovesNameRoute
+  '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/moves/$name': typeof MovesNameRoute
+  '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/moves/$name': typeof MovesNameRoute
+  '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/moves/$name'
+    | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/moves/$name'
+    | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/moves/$name'
+    | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   MovesNameRoute: typeof MovesNameRoute
+  PlayBattleRoute: typeof PlayBattleRoute
   PlaySilhouetteRoute: typeof PlaySilhouetteRoute
   PokemonNameRoute: typeof PokemonNameRoute
   TypesNameRoute: typeof TypesNameRoute
@@ -197,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/battle': {
+      id: '/play/battle'
+      path: '/play/battle'
+      fullPath: '/play/battle'
+      preLoaderRoute: typeof PlayBattleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/silhouette': {
       id: '/play/silhouette'
       path: '/play/silhouette'
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   MovesNameRoute: MovesNameRoute,
+  PlayBattleRoute: PlayBattleRoute,
   PlaySilhouetteRoute: PlaySilhouetteRoute,
   PokemonNameRoute: PokemonNameRoute,
   TypesNameRoute: TypesNameRoute,

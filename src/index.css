@@ -91,6 +91,33 @@
     to { transform: translateX(250%); }
   }
 
+  /*
+   * A figure that attacked, which none of `rise` / `fade` / `pop` says. The
+   * nudge is toward the viewer rather than toward the opponent: the two
+   * combatants stack on a narrow screen and swap sides on a wide one, so a
+   * horizontal lunge would point the wrong way half the time.
+   */
+  @keyframes battle-lunge {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-10%) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* A duplicate under a second name, for the same reason as `rise-alt`: two
+     hits in a row have to replay without the sprite being remounted. The two
+     must stay identical. */
+  @keyframes battle-lunge-alt {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-10%) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* Going down. `fade` alone reads as a swap rather than a knockout. */
+  @keyframes battle-faint {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(45%); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -216,6 +243,16 @@
     border-color: var(--line);
     animation: pip-drain 360ms var(--ease-instrument);
   }
+
+  .lunge-a { animation: battle-lunge var(--dur-base) var(--ease-instrument); }
+  .lunge-b { animation: battle-lunge-alt var(--dur-base) var(--ease-instrument); }
+
+  .battle-faint { animation: battle-faint var(--dur-slow) var(--ease-instrument) both; }
+
+  /* The drain is the only part of a battle that tweens between two values, so
+     it is a transition rather than a keyframe. The reduced-motion block above
+     flattens it to a jump, which still lands on the right number. */
+  .hp-fill { transition: width var(--dur-slow) var(--ease-instrument); }
 
   /*
    * A native <dialog> has no open or close transition of its own, and both ends
