@@ -106,7 +106,7 @@ export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
             role="radio"
             aria-checked={variant === option}
             onClick={() => setVariant(option)}
-            className={`rounded-[3px] px-2 py-0.5 text-micro transition-colors ${
+            className={`rounded-[var(--radius-control)] px-2 py-0.5 text-micro transition-colors ${
               variant === option ? 'bg-accent text-accent-ink' : 'well text-ink-lo hover:text-ink-hi'
             }`}
           >

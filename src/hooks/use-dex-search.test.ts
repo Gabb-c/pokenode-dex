@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import { useDexSearch } from './dex-search'
+import { useDexSearch } from './use-dex-search'
 
 /**
  * The debounce exists to keep `history.replaceState` off the keystroke path —

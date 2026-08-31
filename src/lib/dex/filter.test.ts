@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterDex } from './dex-filter'
+import { filterDex } from './filter'
 
 const index = [
   { id: 1, name: 'bulbasaur', no: '0001' },

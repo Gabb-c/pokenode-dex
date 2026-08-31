@@ -1,20 +1,21 @@
+import { useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { searchIndexQuery } from '@/api/queries/search-index'
 import { cached } from '@/api/query-client'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { readBattleWins } from '@/lib/battle-record'
-import { readBestStreak } from '@/lib/best-streak'
+import { battleWins, bestStreak } from '@/lib/records'
 
 export const Route = createFileRoute('/play/')({
   // The pool every mode draws from, walked while the hub is being read.
   loader: ({ context }) => context.queryClient.query(cached(searchIndexQuery)),
   component: PlayIndex,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
 })
 
 function PlayIndex() {
-  const best = readBestStreak()
-  const wins = readBattleWins()
+  // Lazy state rather than a read in the render body: a `localStorage` read is
+  // impure, and the React Compiler is free to memoize one away. Neither figure
+  // changes while this page is open, so reading once on mount is the answer.
+  const [best] = useState(bestStreak.read)
+  const [wins] = useState(battleWins.read)
 
   return (
     <section className="flex flex-col gap-4">

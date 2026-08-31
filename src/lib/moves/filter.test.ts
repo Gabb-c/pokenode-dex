@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { MoveDamageClass, Type } from 'pokenode-ts'
 import type { MoveEntry } from '@/api/queries/moves'
-import { filterMoves, indexMoves } from './move-filter'
+import { filterMoves, indexMoves } from './filter'
 
 function link(id: number, name: string) {
   return { name, url: `https://pokeapi.co/api/v2/move/${id}/` }

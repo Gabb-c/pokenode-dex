@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import type { LearnedMove } from '@/api/queries/moves'
 import { TypeChip } from './TypeChip'
 import { humanize } from '@/lib/format'
-import { useLocalized } from '@/lib/language'
+import { useLocalized } from '@/hooks/use-language'
 
 /** The docs say a move with no base power is `0`; the endpoint sends `null`. Both mean none. */
 function figure(value: number | null): string {

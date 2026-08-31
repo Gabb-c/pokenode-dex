@@ -13,11 +13,12 @@ import { typeMembersQuery } from '@/api/queries/types'
 import { cached } from '@/api/query-client'
 import { DexFilters, type DexFilterState } from '@/components/dex/DexFilters'
 import { PokemonCard } from '@/components/dex/PokemonCard'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { filterDex } from '@/lib/dex-filter'
-import { useDexSearch } from '@/lib/dex-search'
-import { usePageScroller } from '@/lib/virtual-page'
-import { isBattleType, type TypeName } from '@/lib/types'
+import { Loading } from '@/components/ui/Loading'
+import { filterDex } from '@/lib/dex/filter'
+import { useDexSearch } from '@/hooks/use-dex-search'
+import { usePageScroller } from '@/hooks/use-page-scroller'
+import type { TypeName } from '@/lib/types'
+import { battleTypes, compact, optionalString } from '@/lib/search-params'
 
 interface DexSearch {
   /** Each is absent rather than empty, so an unfiltered dex has a clean URL. */
@@ -27,17 +28,15 @@ interface DexSearch {
 }
 
 export const Route = createFileRoute('/pokemon/')({
-  validateSearch: (input: Record<string, unknown>): DexSearch => {
-    const q = typeof input.q === 'string' ? input.q : ''
-    const gen = typeof input.gen === 'string' ? input.gen : ''
-    const types = Array.isArray(input.types) ? input.types.filter(isBattleType) : []
-
-    return { ...(q ? { q } : {}), ...(gen ? { gen } : {}), ...(types.length ? { types } : {}) }
-  },
+  validateSearch: (input: Record<string, unknown>): DexSearch =>
+    compact({
+      q: optionalString(input.q),
+      gen: optionalString(input.gen),
+      types: battleTypes(input.types),
+    }),
   loader: ({ context }) => context.queryClient.query(cached(searchIndexQuery)),
   component: DexGrid,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
-  pendingComponent: () => <p className="py-16 text-center text-ink-lo">Walking the dex…</p>,
+  pendingComponent: () => <Loading>Walking the dex…</Loading>,
 })
 
 const CARD_MIN = 150

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DexEntry } from '@/api/queries/search-index'
-import { matchDex } from './dex-match'
+import { matchDex } from './match'
 
 const entry = (id: number, name: string): DexEntry => ({
   id,

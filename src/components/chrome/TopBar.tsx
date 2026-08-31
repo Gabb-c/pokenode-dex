@@ -31,7 +31,7 @@ export function TopBar() {
             <Link
               key={to}
               to={to}
-              className="rounded-[4px] px-2.5 py-1.5 text-sm whitespace-nowrap text-ink-mid transition-colors hover:text-ink-hi sm:py-1"
+              className="rounded-[var(--radius-well)] px-2.5 py-1.5 text-sm whitespace-nowrap text-ink-mid transition-colors hover:text-ink-hi sm:py-1"
               activeProps={{ className: 'bg-surface-2 text-ink-hi' }}
               activeOptions={{ exact: false }}
             >

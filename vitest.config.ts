@@ -9,15 +9,20 @@ export default defineConfig({
   },
   test: {
     // Two projects so the pure api/lib tests stay on node, and only the ones
-    // that render pay for jsdom and the Testing Library setup.
+    // that render pay for jsdom and the Testing Library setup. The line between
+    // them is one directory: `src/hooks` is React-bound by definition, and
+    // everything else is node until it renders.
     projects: [
       {
         resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
         test: {
           name: 'unit',
           environment: 'node',
+          // Everything but the hooks, rather than an enumerated set: a file
+          // outside a listed directory would be collected by neither project
+          // and pass by never running.
           include: ['src/**/*.test.ts'],
-          exclude: ['src/lib/dex-search.test.ts'],
+          exclude: ['src/hooks/**'],
         },
       },
       {
@@ -25,7 +30,7 @@ export default defineConfig({
         test: {
           name: 'dom',
           environment: 'jsdom',
-          include: ['src/**/*.test.tsx', 'src/lib/dex-search.test.ts'],
+          include: ['src/**/*.test.tsx', 'src/hooks/**/*.test.ts'],
           setupFiles: ['./src/test/setup.ts'],
         },
       },

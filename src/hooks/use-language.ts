@@ -6,30 +6,19 @@ import {
   type NamedAPIResource,
   type VersionGroup,
 } from 'pokenode-ts'
-import { versionGroupOrder } from './learnset'
+import { versionGroupOrder } from '@/lib/moves/learnset'
+import { readItem, writeItem } from '@/lib/storage'
 
-const KEY = 'pokenode-dex:language'
+const KEY = 'language'
 const FALLBACK = 'en'
 
 const listeners = new Set<() => void>()
 
-function read(): string {
-  try {
-    return localStorage.getItem(KEY) ?? FALLBACK
-  } catch {
-    return FALLBACK
-  }
-}
-
-let language = read()
+let language = readItem(KEY) ?? FALLBACK
 
 function setLanguage(next: string) {
   language = next
-  try {
-    localStorage.setItem(KEY, next)
-  } catch {
-    // Persistence is a convenience; the choice still applies for this session.
-  }
+  writeItem(KEY, next)
   for (const listener of listeners) listener()
 }
 

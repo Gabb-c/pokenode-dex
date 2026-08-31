@@ -1,5 +1,5 @@
 import type { GenerationName, Pokemon, PokemonType } from 'pokenode-ts'
-import { generationOrder } from './generation'
+import { generationOrder } from '@/lib/generation'
 
 /**
  * The types a Pokémon had in `generation`, or the ones it has now.

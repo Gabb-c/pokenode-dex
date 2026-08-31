@@ -72,16 +72,38 @@ items, member sets) uses `staleTime: Infinity`.
 
 The move list shows a type and a class per row without resolving a single move:
 `allTypesQuery` and `allDamageClassesQuery` carry the moves that belong to them,
-and `indexMoves` (`src/lib/move-filter.ts`) reads the grid backwards off those
+and `indexMoves` (`src/lib/moves/filter.ts`) reads the grid backwards off those
 two cached queries. Resolving ~940 moves to fill the same columns is the thing
 that must not be reintroduced.
+
+### Where code lives
+
+`src/lib` is split by domain, and the split is load-bearing rather than tidy:
+
+| | |
+|---|---|
+| `lib/battle/` | `engine`, `damage`, `moveset`, `stats` — the duel |
+| `lib/dex/` | `filter`, `match`, `silhouette` |
+| `lib/moves/` | `filter`, `learnset` |
+| `lib/pokemon/` | `encounters`, `past-types` |
+| `lib/*.ts` | cross-cutting only: `format`, `generation`, `types`, `storage`, `records`, `search-params`, `palette`, `extract-declaration` |
+| `src/hooks/` | every React-bound module, named `use-*` after its hook |
+
+A store that exists to feed a hook lives beside that hook, not in `lib` —
+`paintBrowserChrome` sits in `hooks/use-theme.ts` for that reason.
+
+**A `<section className="panel">` is a component, not route layout.** A route
+owns its loader, its URL shape and its grid; each panel is its own file under
+`src/components/`. A panel that answers to a search param takes it as a **prop**
+— a component reaching for `useSearch({ from: '/some/route' })` is not actually
+extracted, and the route stays the only place that knows the URL shape.
 
 ### External stores
 
 Five `useSyncExternalStore`-style singletons, all outside React:
 `transportLog` (`src/api/transport-log.ts`), `stats`/`resetStats`
 (`src/api/client.ts`), `l1Hits` (`src/api/query-client.ts`), theme
-(`src/lib/theme.ts`), language (`src/lib/language.ts`). Snapshots must keep a
+(`src/hooks/use-theme.ts`), language (`src/hooks/use-language.ts`). Snapshots must keep a
 stable identity between commits — `stats()` only swaps the held tally once a
 count has actually moved. Preserve that when editing.
 
@@ -93,6 +115,9 @@ can never see, because they never reach it.
 
 Every `localStorage` key is prefixed `pokenode-dex:`, and every read/write is
 wrapped in try/catch (privacy modes throw outright; tests have no storage).
+`src/lib/storage.ts` owns both rules and exports `PREFIX`; the transport's
+`WebStorageCache` is the one writer outside those helpers and imports it rather
+than repeating the literal.
 
 ### Routing
 
@@ -112,10 +137,18 @@ clean URL.
 `src/routes/about.tsx` imports real files with Vite's `?raw` and slices out
 named declarations via `extractDeclaration`. Renaming an exported binding in
 `src/api/client.ts`, `src/api/query-client.ts`, `src/api/queries/search-index.ts`,
-`src/api/queries/types.ts`, `src/api/queries/moves.ts`, `src/lib/past-types.ts`,
-`src/lib/language.ts`, or `src/components/dex/PokemonCard.tsx` silently breaks a
-snippet on that page — no type error, no test failure. Update the
-`extract` string in `FEATURES` when you rename one.
+`src/api/queries/types.ts`, `src/api/queries/moves.ts`,
+`src/lib/pokemon/past-types.ts`, `src/hooks/use-language.ts`, or
+`src/components/dex/PokemonCard.tsx` breaks a snippet on that page — and it
+breaks *quietly*, because `extractDeclaration` falls back to the whole file
+rather than throwing. `src/routes/-features.test.ts` is the guard: it asserts
+every snippet still opens with its own `extract` marker. Update the `extract`
+string in `FEATURES` when you rename one, and run that test.
+
+The table itself lives in `src/routes/-features.ts`, not in the route — a
+module that calls `createFileRoute` only typechecks inside the app project,
+which is the one carrying the router's `Register` augmentation. The `-` prefix
+keeps the route generator out of it.
 
 ## Styling rules
 
@@ -130,6 +163,14 @@ one. Tokens live in `src/styles/theme.css`; component classes in
   `` bg-type-${name} `` emits nothing. Pass it as the `--t` custom property:
   `style={{ '--t': typeVar(name) } as CSSProperties}`. `typeVar()`
   (`src/lib/types.ts`) is the single name→token map.
+- **A repeated class string is a missing component class.** `.panel`, `.well`,
+  `.btn`, `.btn-accent`, `.type-chip` and `.detail-grid` live in `src/index.css`
+  and are written as raw properties, never `@apply`-ing each other. Radii come
+  from `--radius-panel` / `--radius-well` / `--radius-control`; a bare
+  `rounded-[3px]` is drift.
+- A repeated *markup shape* is a missing component: `components/ui/Select` owns
+  the label-plus-`<select>` pairing, and the element stays a bare `<select>` so
+  the coarse-pointer floor in `index.css` still reaches it.
 - Hand-written CSS points at the **raw** tokens (`var(--surface-1)`), not the
   `--color-*` aliases — Tailwind only emits an alias when a utility class uses it.
 - Changing any colour requires `node tools/check-contrast.mjs` to still pass. It
@@ -151,11 +192,15 @@ both Vite configs.
 `vitest.config.ts` is deliberately **not** the app's Vite config — the route
 generator and the React compiler have no part in a unit run. Two projects:
 
-- `unit` — node env, `src/**/*.test.ts`
+- `unit` — node env, `src/**/*.test.ts` minus `src/hooks/**`
 - `dom` — jsdom + `src/test/setup.ts`, `src/**/*.test.tsx` plus
-  `src/lib/dex-search.test.ts` (it renders hooks)
+  `src/hooks/**/*.test.ts`
 
-A new `.test.ts` that needs a DOM must be added to the `dom` project's `include`.
+The split is one **directory**, and `unit` is written as a catch-all minus that
+directory on purpose: an enumerated list would let a `.test.ts` in an unlisted
+place be collected by neither project and pass by never running. Anything under
+`src/hooks` is React-bound by definition and gets jsdom; everything else stays
+on node. A `.test.ts` that needs a DOM belongs beside a hook, not in `lib`.
 `src/test/setup.ts` polyfills `HTMLDialogElement.showModal`/`close`, which jsdom
 30 does not implement at all — the command palette depends on it.
 

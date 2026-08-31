@@ -1,10 +1,11 @@
 import type { QueryClient } from '@tanstack/react-query'
-import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { CommandPalette } from '@/components/chrome/CommandPalette'
 import { StatusRail } from '@/components/chrome/StatusRail'
 import { TopBar } from '@/components/chrome/TopBar'
 import { ErrorState } from '@/components/ui/ErrorState'
-import { useRouteEnter } from '@/lib/motion'
+import { NotFound } from '@/components/ui/NotFound'
+import { useRouteEnter } from '@/hooks/use-route-enter'
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
@@ -13,15 +14,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       <ErrorState error={error} onRetry={reset} />
     </Shell>
   ),
+  // Kept rather than left to the router's default: a miss at the root renders
+  // in place of this route's component, so the default would lose the top bar
+  // and the status rail with it.
   notFoundComponent: () => (
     <Shell>
-      <div className="panel mx-auto my-16 max-w-xl p-6">
-        <p className="text-micro uppercase text-ink-lo">404</p>
-        <h2 className="mt-2 text-lg">This app has no page at that address.</h2>
-        <Link to="/pokemon" className="mt-5 inline-block text-sm text-accent">
-          Back to the dex
-        </Link>
-      </div>
+      <NotFound eyebrow="404" back={{ to: '/pokemon', label: 'Back to the dex' }}>
+        This app has no page at that address.
+      </NotFound>
     </Shell>
   ),
 })

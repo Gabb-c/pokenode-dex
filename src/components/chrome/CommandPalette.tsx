@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { searchIndexQuery, type DexEntry } from '@/api/queries/search-index'
-import { matchDex } from '@/lib/dex-match'
+import { matchDex } from '@/lib/dex/match'
 import { dexNo, humanize } from '@/lib/format'
 import { onOpenCommandPalette } from '@/lib/palette'
 

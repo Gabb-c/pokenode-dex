@@ -144,7 +144,9 @@ than something each table remembers.
   acts on, at 375×667 and up. The battle is the worked example: its two
   combatants sit side by side at *every* width, because stacking them put the
   scene at 500px and pushed the move menu below the fold.
-- Radii are tight: `--radius-panel: 6px`, `--radius-well: 4px`, chips fully round.
+- Radii are tight and tokenised: `--radius-panel: 6px`, `--radius-well: 4px`,
+  `--radius-control: 3px` for buttons, chips fully round. A bare `rounded-[3px]`
+  in a component is drift, not a decision.
 - The dex grid is virtualized by row, with the column count derived from the
   container width so the virtualizer always knows the row height.
 - Motion reports a state change and nothing else: a page arriving, a panel
@@ -206,6 +208,17 @@ prefix matches rank above substring matches.
 
 **Error state** — renders `PokenodeError`'s status, status text and URL. A failure
 should say which request failed, never "something went wrong".
+
+**Controls** — `.btn` and `.btn-accent` in `index.css` carry the two button
+shapes; each is structural only (border, radius, transition), so a caller still
+says its own size, weight and hover ink. `components/ui/Select` owns the
+label-plus-`<select>` pairing every filter uses, and keeps a bare `<select>`
+underneath so the coarse-pointer floor still applies to it.
+
+**Detail pages** — the Pokémon and move pages share `DetailHeader` (the masthead
+with the `--t` gradient rule beneath it) and the `.detail-grid` track. Each page
+then owns only what differs: the Pokémon page reorders its columns below `lg`,
+the move page does not.
 
 ---
 

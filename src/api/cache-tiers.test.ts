@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryObserver } from '@tanstack/react-query'
 import { MainClient, WebStorageCache, type Logger, type WebStorageLike } from 'pokenode-ts'
+import { PREFIX } from '@/lib/storage'
 import { l1Hits, queryClient } from './query-client'
 
 /**
@@ -63,7 +64,7 @@ describe('the transport tier', () => {
 
   const client = (ttl: number, api: ReturnType<typeof stubApi>, logger: Logger) =>
     new MainClient({
-      cache: new WebStorageCache({ storage, ttl, prefix: 'pokenode-dex:' }),
+      cache: new WebStorageCache({ storage, ttl, prefix: PREFIX }),
       revalidate: true,
       logger,
       fetch: api.fetch,
@@ -170,7 +171,7 @@ describe('the transport tally', () => {
   it('subtracts a kept snapshot, which is how "clear caches" starts from zero', async () => {
     const api = stubApi()
     const pokeapi = new MainClient({
-      cache: new WebStorageCache({ storage: memoryStorage(), ttl: 60_000, prefix: 'pokenode-dex:' }),
+      cache: new WebStorageCache({ storage: memoryStorage(), ttl: 60_000, prefix: PREFIX }),
       fetch: api.fetch,
     })
 

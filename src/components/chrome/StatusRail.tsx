@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { stats } from '@/api/client'
 import { clearAllCaches, l1Hits } from '@/api/query-client'
 import { transportLog, type ResponseSource, type TransportEvent } from '@/api/transport-log'
-import { useRailOpen } from '@/lib/rail'
+import { useRailOpen } from '@/hooks/use-rail-open'
 
 const SOURCE_LABEL: Record<ResponseSource, string> = {
   network: 'network',
@@ -121,7 +121,7 @@ export function StatusRail() {
               <button
                 type="button"
                 onClick={() => void clearAllCaches().then(() => location.reload())}
-                className="shrink-0 rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
+                className="btn shrink-0 px-2 py-0.5 hover:text-ink-hi"
               >
                 clear caches
               </button>
@@ -132,7 +132,7 @@ export function StatusRail() {
             aria-expanded={open}
             aria-label={`${open ? 'Hide' : 'Show'} transport statistics`}
             onClick={() => setOpen(!open)}
-            className="shrink-0 rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
+            className="btn shrink-0 px-2 py-0.5 hover:text-ink-hi"
           >
             {open ? 'hide' : 'show'}
           </button>

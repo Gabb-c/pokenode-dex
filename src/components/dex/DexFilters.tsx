@@ -1,4 +1,5 @@
 import type { NamedAPIResource, Generation } from 'pokenode-ts'
+import { Select } from '@/components/ui/Select'
 import { generationLabel } from '@/lib/format'
 import { BATTLE_TYPES, typeVar, type TypeName } from '@/lib/types'
 import type { CSSProperties } from 'react'
@@ -49,21 +50,14 @@ export function DexFilters({
           className="well w-full max-w-xs px-3 py-1.5 text-sm text-ink-hi placeholder:text-ink-lo"
         />
 
-        <label className="flex items-center gap-2 text-micro uppercase text-ink-lo">
-          Generation
-          <select
-            value={value.gen}
-            onChange={(event) => onChange({ gen: event.target.value })}
-            className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
-          >
-            <option value="">any</option>
-            {generations?.map((generation) => (
-              <option key={generation.name} value={generation.name}>
-                {generationLabel(generation.name)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select label="Generation" value={value.gen} onChange={(gen) => onChange({ gen })}>
+          <option value="">any</option>
+          {generations?.map((generation) => (
+            <option key={generation.name} value={generation.name}>
+              {generationLabel(generation.name)}
+            </option>
+          ))}
+        </Select>
 
         <span className="text-micro text-ink-lo">
           {/* Keyed on the count so a filter landing is visible in the figure. */}
@@ -80,7 +74,7 @@ export function DexFilters({
               onQueryChange('')
               onChange({ q: '', gen: '', types: [] })
             }}
-            className="ml-auto rounded-[3px] border border-line px-2 py-0.5 text-micro text-ink-lo hover:border-line-strong hover:text-ink-hi"
+            className="btn ml-auto px-2 py-0.5 text-micro text-ink-lo hover:text-ink-hi"
           >
             clear filters
           </button>

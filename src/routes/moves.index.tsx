@@ -6,12 +6,14 @@ import { allDamageClassesQuery, moveIndexQuery } from '@/api/queries/moves'
 import { allTypesQuery } from '@/api/queries/types'
 import { cached } from '@/api/query-client'
 import { TypeChip } from '@/components/dex/TypeChip'
-import { ErrorState } from '@/components/ui/ErrorState'
+import { Select } from '@/components/ui/Select'
+import { Loading } from '@/components/ui/Loading'
 import { humanize } from '@/lib/format'
-import { useDexSearch } from '@/lib/dex-search'
-import { filterMoves, indexMoves, type MoveRow } from '@/lib/move-filter'
-import { BATTLE_TYPES, isBattleType, type TypeName } from '@/lib/types'
-import { usePageScroller } from '@/lib/virtual-page'
+import { useDexSearch } from '@/hooks/use-dex-search'
+import { filterMoves, indexMoves, type MoveRow } from '@/lib/moves/filter'
+import { BATTLE_TYPES, type TypeName } from '@/lib/types'
+import { usePageScroller } from '@/hooks/use-page-scroller'
+import { compact, optionalBattleType, optionalString } from '@/lib/search-params'
 
 interface MoveSearch {
   /** Each is absent rather than empty, so an unfiltered list has a clean URL. */
@@ -21,21 +23,15 @@ interface MoveSearch {
 }
 
 export const Route = createFileRoute('/moves/')({
-  validateSearch: (input: Record<string, unknown>): MoveSearch => {
-    const q = typeof input.q === 'string' ? input.q : ''
-    const type = typeof input.type === 'string' && isBattleType(input.type) ? input.type : ''
-    const damageClass = typeof input.class === 'string' ? input.class : ''
-
-    return {
-      ...(q ? { q } : {}),
-      ...(type ? { type } : {}),
-      ...(damageClass ? { class: damageClass } : {}),
-    }
-  },
+  validateSearch: (input: Record<string, unknown>): MoveSearch =>
+    compact({
+      q: optionalString(input.q),
+      type: optionalBattleType(input.type),
+      class: optionalString(input.class),
+    }),
   loader: ({ context }) => context.queryClient.query(cached(moveIndexQuery)),
   component: MoveIndex,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
-  pendingComponent: () => <p className="py-16 text-center text-ink-lo">Walking the moves…</p>,
+  pendingComponent: () => <Loading>Walking the moves…</Loading>,
 })
 
 const ROW_HEIGHT = 40
@@ -86,37 +82,23 @@ function MoveIndex() {
           className="well w-full max-w-xs px-3 py-1.5 text-sm text-ink-hi placeholder:text-ink-lo"
         />
 
-        <label className="flex items-center gap-2 text-micro uppercase text-ink-lo">
-          Type
-          <select
-            value={type}
-            onChange={(event) => onChange({ type: event.target.value as TypeName })}
-            className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
-          >
-            <option value="">any</option>
-            {BATTLE_TYPES.map((name) => (
-              <option key={name} value={name}>
-                {humanize(name)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select label="Type" value={type} onChange={(next) => onChange({ type: next as TypeName })}>
+          <option value="">any</option>
+          {BATTLE_TYPES.map((name) => (
+            <option key={name} value={name}>
+              {humanize(name)}
+            </option>
+          ))}
+        </Select>
 
-        <label className="flex items-center gap-2 text-micro uppercase text-ink-lo">
-          Class
-          <select
-            value={damageClass}
-            onChange={(event) => onChange({ class: event.target.value })}
-            className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
-          >
-            <option value="">any</option>
-            {classes?.map((entry) => (
-              <option key={entry.name} value={entry.name}>
-                {humanize(entry.name)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select label="Class" value={damageClass} onChange={(next) => onChange({ class: next })}>
+          <option value="">any</option>
+          {classes?.map((entry) => (
+            <option key={entry.name} value={entry.name}>
+              {humanize(entry.name)}
+            </option>
+          ))}
+        </Select>
 
         <p className="ml-auto text-micro uppercase text-ink-lo">
           {/* Keyed on the count so a filter landing is visible in the figure. */}

@@ -1,5 +1,5 @@
 import { TypeChip } from '@/components/dex/TypeChip'
-import type { BattleMove } from '@/lib/battle-moveset'
+import type { BattleMove } from '@/lib/battle/moveset'
 import { humanize } from '@/lib/format'
 
 interface MoveMenuProps {

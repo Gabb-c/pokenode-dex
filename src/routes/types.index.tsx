@@ -5,10 +5,10 @@ import { allTypesQuery } from '@/api/queries/types'
 import { cached } from '@/api/query-client'
 import { GenerationPicker } from '@/components/dex/GenerationPicker'
 import { TypeChip } from '@/components/dex/TypeChip'
-import { ErrorState } from '@/components/ui/ErrorState'
+import { Loading } from '@/components/ui/Loading'
 import { effectiveness, generationLabel } from '@/lib/format'
-import { isGenerationName } from '@/lib/generation'
 import { BATTLE_TYPES, typeVar, type TypeName } from '@/lib/types'
+import { compact, optionalGeneration } from '@/lib/search-params'
 
 interface ChartSearch {
   /** Absent for the chart in force today, so the default view has a clean URL. */
@@ -16,14 +16,11 @@ interface ChartSearch {
 }
 
 export const Route = createFileRoute('/types/')({
-  validateSearch: (input: Record<string, unknown>): ChartSearch => {
-    const gen = typeof input.gen === 'string' && isGenerationName(input.gen) ? input.gen : undefined
-    return gen ? { gen } : {}
-  },
+  validateSearch: (input: Record<string, unknown>): ChartSearch =>
+    compact({ gen: optionalGeneration(input.gen) }),
   loader: ({ context }) => context.queryClient.query(cached(allTypesQuery)),
   component: TypeChart,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
-  pendingComponent: () => <p className="py-16 text-center text-ink-lo">Resolving types…</p>,
+  pendingComponent: () => <Loading>Resolving types…</Loading>,
 })
 
 const TONE: Record<number, string> = {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MoveMenu } from './MoveMenu'
-import type { BattleMove } from '@/lib/battle-moveset'
+import type { BattleMove } from '@/lib/battle/moveset'
 
 function move(name: string, overrides: Partial<BattleMove> = {}): BattleMove {
   return {

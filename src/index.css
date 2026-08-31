@@ -200,25 +200,60 @@
   }
 
   /*
+   * The two control shapes. Written out rather than composed from `.well`,
+   * matching the rest of this layer: `@apply` on a component class here is one
+   * more thing that has to keep working.
+   */
+  .btn {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    transition: border-color var(--dur-base) var(--ease-instrument),
+      color var(--dur-base) var(--ease-instrument);
+  }
+
+  .btn:hover { border-color: var(--line-strong); }
+
+  .btn-accent {
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /*
+   * The outer track of a detail page. The mobile track is `minmax(0,1fr)`
+   * rather than implicit `auto`: an auto track leaves every item at
+   * `min-width: auto`, and the widest one — 475px of artwork, or a learnset
+   * table — then widens the page instead of fitting or scrolling inside its
+   * own panel.
+   */
+  .detail-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 64rem is Tailwind's `lg`, spelled out because a media query cannot read a
+     breakpoint token. Moving that breakpoint means moving this too. */
+  @media (width >= 64rem) {
+    .detail-grid { grid-template-columns: minmax(0, 22rem) minmax(0, 48rem); }
+  }
+
+  /*
    * A line of a source listing. The widest line the about page shows is 115
-   * columns against a phone's ~43, and a sideways drag near the left edge is
-   * the OS back gesture rather than a scroll — so below `sm` the listing wraps
-   * instead. Each line is its own block because `text-indent` hangs the first
-   * line of a block and no other, which is what keeps the nesting readable
-   * once a line has broken.
+   * columns and the page's column tops out at ~97, so the listing wraps at
+   * every width rather than scrolling sideways — a horizontal drag near the
+   * left edge of a phone is the OS back gesture, not a scroll. Each line is
+   * its own block because `text-indent` hangs the first line of a block and no
+   * other, which is what keeps the nesting readable once a line has broken.
    */
   .snippet-line {
     display: block;
     min-height: 1lh;
-  }
-
-  @media (width < 40rem) {
-    .snippet-line {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      padding-left: 2ch;
-      text-indent: -2ch;
-    }
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding-left: 2ch;
+    text-indent: -2ch;
   }
 
   /*

@@ -1,26 +1,19 @@
 import { useSyncExternalStore } from 'react'
+import { readItem, removeItem, writeItem } from '@/lib/storage'
 
-const KEY = 'pokenode-dex:rail'
+const KEY = 'rail'
 const listeners = new Set<() => void>()
 
 function read(): boolean {
-  try {
-    return localStorage.getItem(KEY) !== 'hidden'
-  } catch {
-    return true
-  }
+  return readItem(KEY) !== 'hidden'
 }
 
 let open = read()
 
 function setOpen(next: boolean) {
   open = next
-  try {
-    if (next) localStorage.removeItem(KEY)
-    else localStorage.setItem(KEY, 'hidden')
-  } catch {
-    // A rejected write only costs persistence; the rail still folds.
-  }
+  if (next) removeItem(KEY)
+  else writeItem(KEY, 'hidden')
   for (const listener of listeners) listener()
 }
 

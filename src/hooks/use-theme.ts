@@ -1,17 +1,14 @@
 import { useCallback, useSyncExternalStore } from 'react'
+import { readItem, removeItem, writeItem } from '@/lib/storage'
 
 export type ThemeChoice = 'light' | 'dark' | 'system'
 
-const KEY = 'pokenode-dex:theme'
+const KEY = 'theme'
 const listeners = new Set<() => void>()
 
 function read(): ThemeChoice {
-  try {
-    const saved = localStorage.getItem(KEY)
-    return saved === 'light' || saved === 'dark' ? saved : 'system'
-  } catch {
-    return 'system'
-  }
+  const saved = readItem(KEY)
+  return saved === 'light' || saved === 'dark' ? saved : 'system'
 }
 
 let choice: ThemeChoice = read()
@@ -61,12 +58,10 @@ function apply() {
 
 function setTheme(next: ThemeChoice) {
   choice = next
-  try {
-    if (next === 'system') localStorage.removeItem(KEY)
-    else localStorage.setItem(KEY, next)
-  } catch {
-    // A rejected write only costs persistence; the class below still applies.
-  }
+  // Only a real choice is written down, so a cleared storage comes back to
+  // following the system.
+  if (next === 'system') removeItem(KEY)
+  else writeItem(KEY, next)
   apply()
   for (const listener of listeners) listener()
 }

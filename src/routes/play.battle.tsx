@@ -9,7 +9,7 @@ import { cached } from '@/api/query-client'
 import { BattleScene } from '@/components/play/BattleScene'
 import { GuessBox } from '@/components/play/GuessBox'
 import { MoveMenu } from '@/components/play/MoveMenu'
-import { ErrorState } from '@/components/ui/ErrorState'
+import { Loading } from '@/components/ui/Loading'
 import {
   fighterFrom,
   openBattle,
@@ -17,10 +17,11 @@ import {
   type BattleEvent,
   type BattleState,
   type Side,
-} from '@/lib/battle'
-import { readBattleWins, saveBattleWins } from '@/lib/battle-record'
+} from '@/lib/battle/engine'
+import { battleWins } from '@/lib/records'
 import { humanize } from '@/lib/format'
-import { pickAnswer, playablePool } from '@/lib/silhouette'
+import { pickAnswer, playablePool } from '@/lib/dex/silhouette'
+import { compact, optionalString } from '@/lib/search-params'
 
 interface BattleSearch {
   /** Absent until a Pokémon is chosen, so the picker has a clean URL. */
@@ -28,14 +29,11 @@ interface BattleSearch {
 }
 
 export const Route = createFileRoute('/play/battle')({
-  validateSearch: (input: Record<string, unknown>): BattleSearch => {
-    const me = typeof input.me === 'string' && input.me ? input.me : undefined
-    return me ? { me } : {}
-  },
+  validateSearch: (input: Record<string, unknown>): BattleSearch =>
+    compact({ me: optionalString(input.me) }),
   loader: ({ context }) => context.queryClient.query(cached(searchIndexQuery)),
   component: BattleGame,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
-  pendingComponent: () => <p className="py-16 text-center text-ink-lo">Walking the dex…</p>,
+  pendingComponent: () => <Loading>Walking the dex…</Loading>,
 })
 
 /** Both sides, so a duel is a matter of the Pokémon rather than the training. */
@@ -105,7 +103,7 @@ function Duel({ me, pool }: { me: string; pool: readonly DexEntry[] }) {
     // route and take the header down with them on every rematch. Keyed on the
     // bout rather than the opponent: a small pool can redraw the Pokémon that is
     // already out, and that still has to start a fresh battle.
-    <Suspense fallback={<p className="py-16 text-center text-ink-lo">Sending them out…</p>}>
+    <Suspense fallback={<Loading>Sending them out…</Loading>}>
       <Bout
         key={bout}
         me={me}
@@ -204,7 +202,7 @@ function Bout({ me, foe, onRematch }: BoutProps) {
     events: [],
     step: 0,
   }))
-  const [wins, setWins] = useState(readBattleWins)
+  const [wins, setWins] = useState(battleWins.read)
   const recorded = useRef(false)
 
   const playing = round.step < round.events.length
@@ -224,7 +222,7 @@ function Bout({ me, foe, onRematch }: BoutProps) {
     recorded.current = true
     const total = wins + 1
     setWins(total)
-    saveBattleWins(total)
+    battleWins.save(total)
   }, [outcome, wins])
 
   // Adjusting state during render rather than in an effect: the turn's result
@@ -310,14 +308,14 @@ function Outcome({
         type="button"
         autoFocus
         onClick={onRematch}
-        className="rounded-[3px] bg-accent px-3 py-1 text-micro uppercase text-accent-ink"
+        className="btn-accent px-3 py-1 text-micro uppercase"
       >
         Another opponent
       </button>
       <Link
         to="/play/battle"
         search={{}}
-        className="rounded-[3px] border border-line px-3 py-1 text-micro uppercase text-ink-mid transition-colors hover:border-line-strong"
+        className="btn px-3 py-1 text-micro uppercase text-ink-mid"
       >
         Change Pokémon
       </Link>

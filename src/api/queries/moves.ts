@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { resourceId, type Move, type Pokemon } from 'pokenode-ts'
 import { scoped } from '../client'
-import { learnsetEntries, versionGroupOrder } from '@/lib/learnset'
+import { learnsetEntries, versionGroupOrder } from '@/lib/moves/learnset'
 
 export interface LearnedMove {
   move: Move

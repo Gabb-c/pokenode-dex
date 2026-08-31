@@ -1,4 +1,5 @@
 import type { GenerationName } from 'pokenode-ts'
+import { Select } from '@/components/ui/Select'
 import { GENERATION_NAMES } from '@/lib/generation'
 import { generationLabel } from '@/lib/format'
 
@@ -10,20 +11,17 @@ interface GenerationPickerProps {
 /** The chart to read a page against; absent means the one in force today. */
 export function GenerationPicker({ value, onChange }: GenerationPickerProps) {
   return (
-    <label className="flex items-center gap-2 text-micro uppercase text-ink-lo">
-      Chart
-      <select
-        value={value ?? ''}
-        onChange={(event) => onChange((event.target.value || undefined) as GenerationName | undefined)}
-        className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
-      >
-        <option value="">current</option>
-        {GENERATION_NAMES.map((name) => (
-          <option key={name} value={name}>
-            {generationLabel(name)}
-          </option>
-        ))}
-      </select>
-    </label>
+    <Select
+      label="Chart"
+      value={value ?? ''}
+      onChange={(next) => onChange((next || undefined) as GenerationName | undefined)}
+    >
+      <option value="">current</option>
+      {GENERATION_NAMES.map((name) => (
+        <option key={name} value={name}>
+          {generationLabel(name)}
+        </option>
+      ))}
+    </Select>
   )
 }

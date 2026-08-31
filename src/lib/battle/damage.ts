@@ -1,5 +1,5 @@
-import type { BattleMove } from '@/lib/battle-moveset'
-import type { Fighter } from '@/lib/battle'
+import type { BattleMove } from '@/lib/battle/moveset'
+import type { Fighter } from '@/lib/battle/engine'
 
 /** Same type as the attacker: the oldest bonus in the games. */
 const STAB = 1.5

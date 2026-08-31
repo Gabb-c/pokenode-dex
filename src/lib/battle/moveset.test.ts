@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Move } from 'pokenode-ts'
-import { FALLBACK_MOVE, battleMoveset } from './battle-moveset'
+import { FALLBACK_MOVE, battleMoveset } from './moveset'
 
 function link(name: string) {
   return { name, url: `https://pokeapi.co/api/v2/${name}` }

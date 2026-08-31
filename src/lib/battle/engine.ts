@@ -1,7 +1,7 @@
 import type { Pokemon } from 'pokenode-ts'
-import { damageOf, effectivenessOf, landsHit } from '@/lib/battle-damage'
-import { FALLBACK_MOVE, type BattleMove } from '@/lib/battle-moveset'
-import { battleStats, type BattleStats } from '@/lib/battle-stats'
+import { damageOf, effectivenessOf, landsHit } from '@/lib/battle/damage'
+import { FALLBACK_MOVE, type BattleMove } from '@/lib/battle/moveset'
+import { battleStats, type BattleStats } from '@/lib/battle/stats'
 import { isBattleType, type Matchups, type TypeName } from '@/lib/types'
 
 export type Side = 'player' | 'foe'

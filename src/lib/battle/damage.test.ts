@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { Fighter } from './battle'
-import type { BattleMove } from './battle-moveset'
-import { damageOf, effectivenessOf, landsHit } from './battle-damage'
+import type { Fighter } from './engine'
+import type { BattleMove } from './moveset'
+import { damageOf, effectivenessOf, landsHit } from './damage'
 import type { Matchups, TypeName } from '@/lib/types'
 
 /** The draws in the order `damageOf` takes them: crit, then the roll. */

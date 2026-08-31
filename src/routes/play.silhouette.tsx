@@ -9,11 +9,13 @@ import { cached } from '@/api/query-client'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { GuessBox } from '@/components/play/GuessBox'
 import { Silhouette } from '@/components/play/Silhouette'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { readBestStreak, saveBestStreak } from '@/lib/best-streak'
+import { Select } from '@/components/ui/Select'
+import { Loading } from '@/components/ui/Loading'
+import { bestStreak } from '@/lib/records'
 import { dexNo, generationLabel, humanize } from '@/lib/format'
 import { GENERATION_NAMES, isGenerationName } from '@/lib/generation'
-import { isCorrectGuess, pickAnswer, playablePool } from '@/lib/silhouette'
+import { isCorrectGuess, pickAnswer, playablePool } from '@/lib/dex/silhouette'
+import { compact, optionalGeneration } from '@/lib/search-params'
 
 interface PlaySearch {
   /** Absent for the whole dex, so the default game has a clean URL. */
@@ -21,14 +23,11 @@ interface PlaySearch {
 }
 
 export const Route = createFileRoute('/play/silhouette')({
-  validateSearch: (input: Record<string, unknown>): PlaySearch => {
-    const gen = typeof input.gen === 'string' && isGenerationName(input.gen) ? input.gen : undefined
-    return gen ? { gen } : {}
-  },
+  validateSearch: (input: Record<string, unknown>): PlaySearch =>
+    compact({ gen: optionalGeneration(input.gen) }),
   loader: ({ context }) => context.queryClient.query(cached(searchIndexQuery)),
   component: SilhouetteGame,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
-  pendingComponent: () => <p className="py-16 text-center text-ink-lo">Walking the dex…</p>,
+  pendingComponent: () => <Loading>Walking the dex…</Loading>,
 })
 
 const LIVES = 3
@@ -73,7 +72,7 @@ function SilhouetteGame() {
   const scoping = gen !== undefined && members === undefined
 
   const [run, setRun] = useState<Run>(() => start(pool))
-  const [best, setBest] = useState(readBestStreak)
+  const [best, setBest] = useState(bestStreak.read)
   // Restarts whenever the pool itself changes — a new generation is a new run,
   // and so is the moment its membership finally lands.
   const [lastPool, setLastPool] = useState(pool)
@@ -94,7 +93,7 @@ function SilhouetteGame() {
     const streak = correct ? run.streak + 1 : run.streak
     if (streak > best) {
       setBest(streak)
-      saveBestStreak(streak)
+      bestStreak.save(streak)
     }
 
     setRun({
@@ -123,24 +122,20 @@ function SilhouetteGame() {
       <header className="flex w-full flex-wrap items-center gap-x-6 gap-y-2">
         <h1 className="text-2xl tracking-tight">Who&rsquo;s that Pokémon?</h1>
 
-        <label className="flex items-center gap-2 text-micro uppercase text-ink-lo">
-          Generation
-          <select
-            value={gen ?? ''}
-            onChange={(event) => {
-              const next = event.target.value
-              void navigate({ search: isGenerationName(next) ? { gen: next } : {} })
-            }}
-            className="well cursor-pointer px-2 py-1 text-sm text-ink-mid"
-          >
-            <option value="">any</option>
-            {GENERATION_NAMES.map((name) => (
-              <option key={name} value={name}>
-                {generationLabel(name)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Generation"
+          value={gen ?? ''}
+          onChange={(next) =>
+            void navigate({ search: isGenerationName(next) ? { gen: next } : {} })
+          }
+        >
+          <option value="">any</option>
+          {GENERATION_NAMES.map((name) => (
+            <option key={name} value={name}>
+              {generationLabel(name)}
+            </option>
+          ))}
+        </Select>
 
         <p className="ml-auto flex items-center gap-4 text-micro uppercase text-ink-lo">
           <span>
@@ -237,7 +232,7 @@ function Reveal({ answer, correct, onNext }: RevealProps) {
         type="button"
         autoFocus
         onClick={onNext}
-        className="rounded-[3px] bg-accent px-3 py-1 text-micro uppercase text-accent-ink"
+        className="btn-accent px-3 py-1 text-micro uppercase"
       >
         Next
       </button>
@@ -265,7 +260,7 @@ function GameOver({
         type="button"
         autoFocus
         onClick={onRestart}
-        className="rounded-[3px] bg-accent px-3 py-1 text-micro uppercase text-accent-ink"
+        className="btn-accent px-3 py-1 text-micro uppercase"
       >
         Play again
       </button>

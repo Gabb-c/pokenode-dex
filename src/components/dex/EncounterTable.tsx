@@ -1,4 +1,4 @@
-import type { EncounterRow } from '@/lib/encounters'
+import type { EncounterRow } from '@/lib/pokemon/encounters'
 import { humanize } from '@/lib/format'
 
 /** A den can be gated behind a dozen flags, and the list stops being readable. */

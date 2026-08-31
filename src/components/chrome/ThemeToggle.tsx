@@ -1,4 +1,4 @@
-import { useTheme, type ThemeChoice } from '@/lib/theme'
+import { useTheme, type ThemeChoice } from '@/hooks/use-theme'
 
 const CHOICES: readonly { value: ThemeChoice; label: string; glyph: string }[] = [
   { value: 'light', label: 'Light theme', glyph: '☀' },
@@ -20,7 +20,7 @@ export function ThemeToggle() {
           aria-label={label}
           title={label}
           onClick={() => setChoice(value)}
-          className={`rounded-[3px] px-2 py-0.5 text-xs transition-colors ${
+          className={`rounded-[var(--radius-control)] px-2 py-0.5 text-xs transition-colors ${
             choice === value
               ? 'bg-accent text-accent-ink'
               : 'text-ink-lo hover:text-ink-hi'

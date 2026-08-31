@@ -73,7 +73,7 @@ pnpm dev
 ## Design
 
 The visual system — the token architecture, how the eighteen type colours are
-derived, and the accessibility contract — is documented in [design.md](./design.md).
+derived, and the accessibility contract — is documented in [DESIGN.md](./DESIGN.md).
 
 ## Data
 

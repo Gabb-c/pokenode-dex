@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { DexEntry } from '@/api/queries/search-index'
-import { matchDex } from '@/lib/dex-match'
+import { matchDex } from '@/lib/dex/match'
 import { dexNo, humanize } from '@/lib/format'
 
 const SUGGESTIONS = 5

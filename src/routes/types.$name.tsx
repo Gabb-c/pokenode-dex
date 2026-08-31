@@ -5,10 +5,9 @@ import { typeQuery } from '@/api/queries/types'
 import { cached, isNotFound } from '@/api/query-client'
 import { GenerationPicker } from '@/components/dex/GenerationPicker'
 import { TypeChip } from '@/components/dex/TypeChip'
-import { ErrorState } from '@/components/ui/ErrorState'
 import { generationLabel, humanize } from '@/lib/format'
-import { isGenerationName } from '@/lib/generation'
 import { isBattleType } from '@/lib/types'
+import { compact, optionalGeneration } from '@/lib/search-params'
 
 /** Enough to browse; the dex filter is the right tool past this. */
 const LISTED = 120
@@ -19,10 +18,8 @@ interface ChartSearch {
 }
 
 export const Route = createFileRoute('/types/$name')({
-  validateSearch: (input: Record<string, unknown>): ChartSearch => {
-    const gen = typeof input.gen === 'string' && isGenerationName(input.gen) ? input.gen : undefined
-    return gen ? { gen } : {}
-  },
+  validateSearch: (input: Record<string, unknown>): ChartSearch =>
+    compact({ gen: optionalGeneration(input.gen) }),
   loader: async ({ context, params }) => {
     try {
       await context.queryClient.query(cached(typeQuery(params.name)))
@@ -32,7 +29,6 @@ export const Route = createFileRoute('/types/$name')({
     }
   },
   component: TypeDetail,
-  errorComponent: ({ error, reset }) => <ErrorState error={error} onRetry={reset} />,
 })
 
 function TypeDetail() {

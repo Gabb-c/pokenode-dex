@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from 'pokenode-ts'
-import { battleStats } from './battle-stats'
+import { battleStats } from './stats'
 
 function link(name: string) {
   return { name, url: `https://pokeapi.co/api/v2/${name}` }

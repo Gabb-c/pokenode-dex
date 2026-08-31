@@ -5,6 +5,7 @@ import {
   type CacheStore,
   type ClientStats,
 } from 'pokenode-ts'
+import { PREFIX, canPersist } from '@/lib/storage'
 import { transportLogger } from './transport-log'
 
 /**
@@ -16,14 +17,9 @@ const TTL = 24 * 60 * 60 * 1000
 
 /** `localStorage` is absent under test and throws outright in some privacy modes. */
 function persistentCache(): CacheStore {
-  try {
-    const probe = '__pokenode_dex__'
-    localStorage.setItem(probe, probe)
-    localStorage.removeItem(probe)
-    return new WebStorageCache({ storage: localStorage, ttl: TTL, prefix: 'pokenode-dex:' })
-  } catch {
-    return new MemoryCache({ ttl: TTL })
-  }
+  return canPersist()
+    ? new WebStorageCache({ storage: localStorage, ttl: TTL, prefix: PREFIX })
+    : new MemoryCache({ ttl: TTL })
 }
 
 /**

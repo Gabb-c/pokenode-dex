@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { chooseFoeMove, fighterFrom, openBattle, resolveTurn, type Fighter } from './battle'
-import type { BattleMove } from './battle-moveset'
+import { chooseFoeMove, fighterFrom, openBattle, resolveTurn, type Fighter } from './engine'
+import type { BattleMove } from './moveset'
 import type { Matchups, TypeName } from '@/lib/types'
 
 /** No crit, a mid roll, and every hundred-accuracy move connects. */

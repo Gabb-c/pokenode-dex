@@ -1,6 +1,6 @@
 import { resourceId, type MoveDamageClass, type Type } from 'pokenode-ts'
 import type { MoveEntry } from '@/api/queries/moves'
-import { isBattleType, type TypeName } from './types'
+import { isBattleType, type TypeName } from '@/lib/types'
 
 export interface MoveRow extends MoveEntry {
   /** Absent until the reference queries land; the row renders without them. */

@@ -10,6 +10,7 @@
 
   --radius-panel: 6px;
   --radius-well: 4px;
+  --radius-control: 3px;
 
   --ease-instrument: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-quick: 140ms;

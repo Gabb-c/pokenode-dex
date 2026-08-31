@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import { getPokemonSpriteUrl } from 'pokenode-ts'
-import type { BattleEvent, Fighter, Side } from '@/lib/battle'
+import type { BattleEvent, Fighter, Side } from '@/lib/battle/engine'
 import { humanize } from '@/lib/format'
 
 /**

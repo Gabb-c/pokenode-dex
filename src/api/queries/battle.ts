@@ -1,8 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { Pokemon } from 'pokenode-ts'
 import { scoped } from '../client'
-import { battleMoveset, type BattleMove } from '@/lib/battle-moveset'
-import { defaultVersionGroup, learnsetEntries } from '@/lib/learnset'
+import { battleMoveset, type BattleMove } from '@/lib/battle/moveset'
+import { defaultVersionGroup, learnsetEntries } from '@/lib/moves/learnset'
 
 /**
  * How many links one side may follow.
