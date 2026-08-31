@@ -136,8 +136,20 @@ than something each table remembers.
 - Radii are tight: `--radius-panel: 6px`, `--radius-well: 4px`, chips fully round.
 - The dex grid is virtualized by row, with the column count derived from the
   container width so the virtualizer always knows the row height.
-- Motion is `--ease-instrument` (`cubic-bezier(0.16, 1, 0.3, 1)`) and short. Stat
-  bars grow on mount; nothing else animates by default.
+- Motion reports a state change and nothing else: a page arriving, a panel
+  swapping under a picker, a tally moving, a transport tier answering. Decoration
+  does not qualify.
+- Every animation eases on `--ease-instrument` (`cubic-bezier(0.16, 1, 0.3, 1)`)
+  and takes its duration from `--dur-quick` / `--dur-base` / `--dur-slow`, so
+  pacing is tuned in one place. A hard-coded `ms` belongs only to a keyframe with
+  its own rhythm (`art-shake`, `art-bloom`).
+- The vocabulary is small and reused: `.rise` / `.rise-fast` for arrival,
+  `.fade-in` for a swap, `.pop` for a figure that moved, `.stagger` for a series.
+  A new keyframe needs a reason none of those covers.
+- Motion never carries meaning on its own — the tier that answered is named in
+  the rail whether or not the line moved.
+- Nothing inside a scroll container is animated per item. Virtualized rows mount
+  and unmount as they scroll, so the container fades, never the row.
 - Everything is behind `prefers-reduced-motion`, killed globally in the base layer.
 
 ---

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { LearnedMove } from '@/api/queries/moves'
 import { TypeChip } from './TypeChip'
 import { humanize } from '@/lib/format'
@@ -13,7 +14,8 @@ export function MoveTable({ moves }: { moves: readonly LearnedMove[] }) {
   const showLevel = moves.some((entry) => entry.level > 0)
 
   return (
-    <div className="overflow-x-auto">
+    // Every picker change re-suspends this table, so its own mount is the swap.
+    <div className="fade-in overflow-x-auto">
       <table className="w-full min-w-max border-collapse text-sm">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">
@@ -64,7 +66,15 @@ function MoveRow({ entry, showLevel }: { entry: LearnedMove; showLevel: boolean 
           {entry.level === 0 ? 'Evo.' : entry.level}
         </td>
       )}
-      <td className="p-2 text-ink-hi">{name}</td>
+      <td className="p-2">
+        <Link
+          to="/moves/$name"
+          params={{ name: move.name }}
+          className="text-ink-hi hover:text-accent"
+        >
+          {name}
+        </Link>
+      </td>
       <td className="p-2">
         <TypeChip name={move.type.name} />
       </td>

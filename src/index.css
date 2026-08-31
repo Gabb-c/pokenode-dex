@@ -39,11 +39,94 @@
     to { transform: scaleX(1); transform-origin: left; }
   }
 
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes art-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes art-shake {
+    0%, 100% { transform: none; }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(2px); }
+  }
+
+  @keyframes art-bloom {
+    from { opacity: 0; transform: scale(0.55); }
+    40% { opacity: 1; }
+    to { opacity: 0; transform: scale(1.2); }
+  }
+
+  @keyframes pip-drain {
+    from { transform: scale(1.5); background: var(--negative); border-color: var(--negative); }
+    to { transform: scale(1); }
+  }
+
+  @keyframes pop {
+    from { transform: scale(1.35); }
+    to { transform: scale(1); }
+  }
+
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* A duplicate of `rise` under a second name, so alternating the two class
+     names changes `animation-name` and replays the entrance. The two must stay
+     identical — a change to one is invisible until the other navigation. */
+  @keyframes rise-alt {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
+
+  /*
+   * A figure that attacked, which none of `rise` / `fade` / `pop` says. The
+   * nudge is toward the viewer rather than toward the opponent: the two
+   * combatants stack on a narrow screen and swap sides on a wide one, so a
+   * horizontal lunge would point the wrong way half the time.
+   */
+  @keyframes battle-lunge {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-10%) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* A duplicate under a second name, for the same reason as `rise-alt`: two
+     hits in a row have to replay without the sprite being remounted. The two
+     must stay identical. */
+  @keyframes battle-lunge-alt {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-10%) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* Going down. `fade` alone reads as a swap rather than a knockout. */
+  @keyframes battle-faint {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(45%); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
+      /* Delays too, or a staggered series with `both` fill holds each item at
+         its from-state and flashes in one by one. */
+      animation-delay: -1ms !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
       scroll-behavior: auto !important;
     }
   }
@@ -85,5 +168,154 @@
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: var(--radius-well);
+  }
+
+  /*
+   * The subject of a round, punched out of its own artwork. The transition is
+   * the reveal; the reduced-motion block above already flattens it.
+   */
+  .silhouette {
+    filter: brightness(0) invert(var(--silhouette-invert));
+    transition: filter 400ms var(--ease-instrument);
+  }
+
+  /* The artwork and the bloom behind it share one cell, so they stay centred
+     on each other without either being taken out of flow. */
+  .stage { display: grid; place-items: center; }
+  .stage > * { grid-area: 1 / 1; }
+
+  .art-in { animation: art-in 320ms var(--ease-instrument) both; }
+
+  /* Ordered after .art-in: a wrong verdict replaces the entrance rather than
+     compounding with it. */
+  .art-shake { animation: art-shake 340ms var(--ease-instrument); }
+
+  .art-bloom {
+    width: 16rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklch, var(--positive) 40%, transparent) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    animation: art-bloom 520ms var(--ease-instrument) both;
+  }
+
+  /*
+   * Arrival. `.rise-a` / `.rise-b` are the page entrance: the same animation
+   * under two names, which `useRouteEnter` alternates so a navigation replays
+   * it without remounting the route.
+   *
+   * The delay slot reads `--stagger-delay` rather than being set by `.stagger`
+   * as a longhand: an `animation` shorthand resets `animation-delay`, so a
+   * longhand would survive only while it stayed declared after every one of
+   * these rules.
+   */
+  .rise,
+  .rise-a { animation: rise var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+  .rise-b { animation: rise-alt var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+  .rise-fast { animation: rise var(--dur-quick) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+
+  .fade-in { animation: fade var(--dur-base) var(--ease-instrument) var(--stagger-delay, 0s) both; }
+
+  /* Capped, so a long evolution chain does not cascade for a second. */
+  .stagger { --stagger-delay: calc(min(var(--i, 0), 5) * 60ms); }
+
+  .pop { display: inline-block; animation: pop 300ms var(--ease-instrument); }
+
+  /* Spent lives go hollow as well as red — the shape carries the count on its
+     own, per the colour-is-never-alone rule. */
+  .pip {
+    width: 0.5rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--ink-hi);
+    border: 1px solid transparent;
+    transition:
+      background-color var(--dur-base) var(--ease-instrument),
+      border-color var(--dur-base) var(--ease-instrument);
+  }
+
+  .pip-spent {
+    background: transparent;
+    border-color: var(--line);
+    animation: pip-drain 360ms var(--ease-instrument);
+  }
+
+  .lunge-a { animation: battle-lunge var(--dur-base) var(--ease-instrument); }
+  .lunge-b { animation: battle-lunge-alt var(--dur-base) var(--ease-instrument); }
+
+  .battle-faint { animation: battle-faint var(--dur-slow) var(--ease-instrument) both; }
+
+  /* The drain is the only part of a battle that tweens between two values, so
+     it is a transition rather than a keyframe. The reduced-motion block above
+     flattens it to a jump, which still lands on the right number. */
+  .hp-fill { transition: width var(--dur-slow) var(--ease-instrument); }
+
+  /*
+   * A native <dialog> has no open or close transition of its own, and both ends
+   * of one are discrete: `display` and `overlay` flip as the top layer unwinds,
+   * so they need `allow-discrete` to stay animatable. `@starting-style` supplies
+   * the from-state the first paint would otherwise skip.
+   */
+  dialog {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition:
+      opacity var(--dur-base) var(--ease-instrument),
+      transform var(--dur-base) var(--ease-instrument),
+      overlay var(--dur-base) allow-discrete,
+      display var(--dur-base) allow-discrete;
+  }
+
+  dialog[open] { opacity: 1; transform: none; }
+
+  dialog::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-instrument),
+      overlay var(--dur-base) allow-discrete,
+      display var(--dur-base) allow-discrete;
+  }
+
+  dialog[open]::backdrop { opacity: 1; }
+
+  @starting-style {
+    dialog[open] { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    dialog[open]::backdrop { opacity: 0; }
+  }
+
+  /* Rides the rail's own top border while requests are outstanding. Reduced
+     motion collapses it to one frame, which is right: the pending tally beside
+     it already carries the count. */
+  .rail-sweep {
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 1px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .rail-sweep::after {
+    content: "";
+    display: block;
+    width: 30%;
+    height: 100%;
+    background: var(--accent);
+    animation: sweep 1100ms var(--ease-instrument) infinite;
+  }
+
+  /*
+   * Held for one frame by `applyTheme`, so the palette swap cross-fades. Scoped
+   * to that frame rather than left on: a standing `transition: color` on every
+   * element makes every hover in the app feel a step behind.
+   */
+  html.theming, html.theming * {
+    transition:
+      background-color var(--dur-base) var(--ease-instrument),
+      border-color var(--dur-base) var(--ease-instrument),
+      color var(--dur-base) var(--ease-instrument);
   }
 }

@@ -4,7 +4,9 @@ import { ThemeToggle } from './ThemeToggle'
 
 const NAV = [
   { to: '/pokemon', label: 'Dex' },
+  { to: '/moves', label: 'Moves' },
   { to: '/types', label: 'Types' },
+  { to: '/play', label: 'Play' },
   { to: '/about', label: 'How it works' },
 ] as const
 
@@ -22,7 +24,7 @@ export function TopBar() {
             <Link
               key={to}
               to={to}
-              className="rounded-[4px] px-2.5 py-1 text-sm whitespace-nowrap text-ink-mid hover:text-ink-hi"
+              className="rounded-[4px] px-2.5 py-1 text-sm whitespace-nowrap text-ink-mid transition-colors hover:text-ink-hi"
               activeProps={{ className: 'bg-surface-2 text-ink-hi' }}
               activeOptions={{ exact: false }}
             >

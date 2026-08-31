@@ -5,6 +5,8 @@ import queryClientSource from '@/api/query-client.ts?raw'
 import searchIndexSource from '@/api/queries/search-index.ts?raw'
 import typeQueriesSource from '@/api/queries/types.ts?raw'
 import moveQueriesSource from '@/api/queries/moves.ts?raw'
+import pastTypesSource from '@/lib/past-types.ts?raw'
+import languageSource from '@/lib/language.ts?raw'
 import cardSource from '@/components/dex/PokemonCard.tsx?raw'
 
 export const Route = createFileRoute('/about')({ component: About })
@@ -53,6 +55,20 @@ const FEATURES: Feature[] = [
       'A Pokémon carries its whole learnset as links — several hundred of them. The work is narrowing to the twenty a reader asked for before resolveAll follows any, and letting the concurrency cap pace the rest.',
     source: moveQueriesSource,
     extract: 'export const learnsetQuery',
+  },
+  {
+    title: 'The chart a generation actually used',
+    blurb:
+      'relationsFor reads past_damage_relations, so the type chart can be asked what it looked like in Gen I — and nothing is guessed for a type that did not exist yet. The defender needs the same treatment, which is what this does: a matchup scoped to a generation is only honest if both sides are.',
+    source: pastTypesSource,
+    extract: 'export function typesIn',
+  },
+  {
+    title: 'One entry per game, in one language',
+    blurb:
+      'localize picks a single entry and stops. Flavour text is published once per version group, so the question is which of the translated ones — and that needs them all. localizeAll narrows to the language and leaves the choice where it belongs.',
+    source: languageSource,
+    extract: 'export function useLatestFlavor',
   },
   {
     title: 'Sprites without a request',

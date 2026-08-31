@@ -1,5 +1,12 @@
 import { useCallback, useSyncExternalStore } from 'react'
-import { localize, type Localized } from 'pokenode-ts'
+import {
+  localize,
+  localizeAll,
+  type Localized,
+  type NamedAPIResource,
+  type VersionGroup,
+} from 'pokenode-ts'
+import { versionGroupOrder } from './learnset'
 
 const KEY = 'pokenode-dex:language'
 const FALLBACK = 'en'
@@ -46,4 +53,31 @@ export function useLanguage(): [string, (next: string) => void] {
 export function useLocalized<T extends Localized>(entries: readonly T[]): T | undefined {
   const [language] = useLanguage()
   return localize(entries, language) ?? localize(entries, FALLBACK) ?? entries[0]
+}
+
+/** Flavour text is published once per version group, and they read differently. */
+type VersionedEntry = Localized & { version_group: NamedAPIResource<VersionGroup> }
+
+/**
+ * The newest flavour text in the reader's language.
+ *
+ * `localize` picks one entry and stops; a resource carries dozens, one per game
+ * that ever described it, so the question here is *which* of the translated
+ * ones — and that needs them all. `localizeAll` narrows to the language,
+ * release order picks the survivor, and English stands in for a language a
+ * resource was never translated into.
+ */
+export function useLatestFlavor<T extends VersionedEntry>(entries: readonly T[]): T | undefined {
+  const [language] = useLanguage()
+  const translated = localizeAll(entries, language)
+  const available = translated.length > 0 ? translated : localizeAll(entries, FALLBACK)
+
+  return available.reduce<T | undefined>(
+    (latest, entry) =>
+      !latest ||
+      versionGroupOrder(entry.version_group.name) > versionGroupOrder(latest.version_group.name)
+        ? entry
+        : latest,
+    undefined,
+  )
 }

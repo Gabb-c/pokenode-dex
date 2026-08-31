@@ -12,6 +12,9 @@
   --radius-well: 4px;
 
   --ease-instrument: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-quick: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 380ms;
 
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1rem;
@@ -51,6 +54,13 @@
   --negative: oklch(0.480 0.180 25);
   --caution: oklch(0.520 0.130 75);
 
+  /*
+   * Whether a silhouette is punched out black or white. Not a colour, so it is
+   * a bare number: `brightness(0) invert(var(--silhouette-invert))` in
+   * index.css. A `dark:` variant here would be a missing token.
+   */
+  --silhouette-invert: 0;
+
   --type-normal: oklch(0.499 0.059 106.8);
   --type-fire: oklch(0.497 0.127 52.6);
   --type-water: oklch(0.477 0.144 263.8);
@@ -86,6 +96,7 @@
   --positive: oklch(0.800 0.150 150);
   --negative: oklch(0.750 0.150 25);
   --caution: oklch(0.830 0.140 75);
+  --silhouette-invert: 1;
 
   --type-normal: oklch(0.819 0.059 106.8);
   --type-fire: oklch(0.817 0.118 52.6);

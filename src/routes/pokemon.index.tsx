@@ -95,9 +95,9 @@ function DexGrid() {
       />
 
       {matches.length === 0 ? (
-        <p className="py-16 text-center text-ink-lo">Nothing matches these filters.</p>
+        <p className="rise-fast py-16 text-center text-ink-lo">Nothing matches these filters.</p>
       ) : (
-        <VirtualDexRows matches={matches} />
+        <VirtualDexRows matches={matches} signature={`${deferredQuery}|${gen}|${types.join()}`} />
       )}
     </div>
   )
@@ -108,7 +108,14 @@ function DexGrid() {
  * holding `useVirtualizer`, so keeping it here leaves the rest of the dex
  * compiled.
  */
-function VirtualDexRows({ matches }: { matches: readonly DexEntry[] }) {
+function VirtualDexRows({
+  matches,
+  /** What the result set is of. The grid fades when it changes, never on scroll. */
+  signature,
+}: {
+  matches: readonly DexEntry[]
+  signature: string
+}) {
   // Held as state, not a ref: the empty state unmounts this element, and a ref
   // identity never changes, so an effect keyed on one would not re-attach.
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
@@ -124,7 +131,16 @@ function VirtualDexRows({ matches }: { matches: readonly DexEntry[] }) {
 
   return (
     <div ref={setScroller} className="min-h-0 flex-1 overflow-y-auto">
-      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+      {/* The fade sits here rather than on the scroller — keying that would
+          rebuild the ResizeObserver and the virtualizer on every keystroke —
+          and rather than on a row, which mounts and unmounts as it scrolls.
+          Opacity only: a transform on a scroll container's child is a
+          containing block nobody asked for. */}
+      <div
+        key={signature}
+        className="fade-in relative w-full"
+        style={{ height: virtualizer.getTotalSize() }}
+      >
         {virtualizer.getVirtualItems().map((row) => (
           <div
             key={row.key}

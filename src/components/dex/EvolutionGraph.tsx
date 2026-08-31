@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   formatRequirements,
@@ -20,22 +21,22 @@ export function EvolutionGraph({ chain, current }: { chain: ChainLink; current: 
 
   return (
     <div className="overflow-x-auto">
-      <Node link={chain} current={current} />
+      <Node link={chain} current={current} depth={0} />
     </div>
   )
 }
 
-function Node({ link, current }: { link: ChainLink; current: string }) {
+function Node({ link, current, depth }: { link: ChainLink; current: string; depth: number }) {
   return (
     <div className="flex items-center gap-2">
-      <Species link={link} current={current} />
+      <Species link={link} current={current} depth={depth} />
 
       {link.evolves_to.length > 0 && (
         <ul className="flex flex-col gap-2">
           {link.evolves_to.map((next) => (
             <li key={next.species.name} className="flex items-center gap-2">
               <Edge conditions={routesInto(next)} />
-              <Node link={next} current={current} />
+              <Node link={next} current={current} depth={depth + 1} />
             </li>
           ))}
         </ul>
@@ -65,7 +66,7 @@ function Edge({ conditions }: { conditions: string[] }) {
   )
 }
 
-function Species({ link, current }: { link: ChainLink; current: string }) {
+function Species({ link, current, depth }: { link: ChainLink; current: string; depth: number }) {
   const id = resourceId(link.species)
   const isCurrent = link.species.name === current
 
@@ -74,7 +75,9 @@ function Species({ link, current }: { link: ChainLink; current: string }) {
       to="/pokemon/$name"
       params={{ name: link.species.name }}
       aria-current={isCurrent ? 'page' : undefined}
-      className={`well flex w-24 shrink-0 flex-col items-center gap-0.5 p-2 transition-colors ${
+      // Depth is the stage, so a chain resolves in the order it evolves in.
+      style={{ '--i': depth } as CSSProperties}
+      className={`well rise-fast stagger flex w-24 shrink-0 flex-col items-center gap-0.5 p-2 transition-colors ${
         isCurrent ? 'border-accent text-accent' : 'text-ink-hi hover:border-line-strong'
       }`}
     >
