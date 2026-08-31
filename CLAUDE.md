@@ -67,14 +67,21 @@ should follow that shape — never call `api.*` directly from a query.
 
 All in `src/api/queries/*.ts` as `queryOptions` factories, never inline in
 components. Reference data (`generations`, `languages`, `all-types`,
-`damage-classes`, `search-index`, `move-index`, encounters, abilities, held
-items, member sets) uses `staleTime: Infinity`.
+`damage-classes`, `search-index`, `move-index`, `pokedexes`, encounters,
+abilities, held items, member sets) uses `staleTime: Infinity`.
 
 The move list shows a type and a class per row without resolving a single move:
 `allTypesQuery` and `allDamageClassesQuery` carry the moves that belong to them,
 and `indexMoves` (`src/lib/moves/filter.ts`) reads the grid backwards off those
 two cached queries. Resolving ~940 moves to fill the same columns is the thing
 that must not be reintroduced.
+
+A regional Pokédex (`src/routes/games.$dex.tsx`) is one `getPokedexByName` and
+nothing else. `entriesOf` (`src/lib/dex/pokedex.ts`) joins its entries to the
+cached search index **by species id**, because a species slug is not a Pokémon
+slug — the species `deoxys` is the Pokémon `deoxys-normal`, and linking the
+former 404s. The result is `DexEntry[]` carrying the *regional* number in `no`,
+so `filterDex` and `DexGrid` are reused unchanged.
 
 ### Where code lives
 
@@ -83,7 +90,7 @@ that must not be reintroduced.
 | | |
 |---|---|
 | `lib/battle/` | `engine`, `damage`, `moveset`, `stats` — the duel |
-| `lib/dex/` | `filter`, `match`, `silhouette` |
+| `lib/dex/` | `filter`, `match`, `pokedex`, `silhouette` |
 | `lib/moves/` | `filter`, `learnset` |
 | `lib/pokemon/` | `encounters`, `past-types` |
 | `lib/*.ts` | cross-cutting only: `format`, `generation`, `types`, `storage`, `records`, `search-params`, `palette`, `extract-declaration` |
@@ -138,8 +145,9 @@ clean URL.
 named declarations via `extractDeclaration`. Renaming an exported binding in
 `src/api/client.ts`, `src/api/query-client.ts`, `src/api/queries/search-index.ts`,
 `src/api/queries/types.ts`, `src/api/queries/moves.ts`,
-`src/lib/pokemon/past-types.ts`, `src/hooks/use-language.ts`, or
-`src/components/dex/PokemonCard.tsx` breaks a snippet on that page — and it
+`src/api/queries/games.ts`, `src/lib/pokemon/past-types.ts`,
+`src/hooks/use-language.ts`, or `src/components/dex/PokemonCard.tsx`
+breaks a snippet on that page — and it
 breaks *quietly*, because `extractDeclaration` falls back to the whole file
 rather than throwing. `src/routes/-features.test.ts` is the guard: it asserts
 every snippet still opens with its own `extract` marker. Update the `extract`

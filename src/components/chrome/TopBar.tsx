@@ -7,6 +7,7 @@ const NAV = [
   { to: '/pokemon', label: 'Dex' },
   { to: '/moves', label: 'Moves' },
   { to: '/types', label: 'Types' },
+  { to: '/games', label: 'Games' },
   { to: '/play', label: 'Play' },
   { to: '/about', label: 'How it works' },
 ] as const
@@ -21,7 +22,7 @@ export function TopBar() {
         </Link>
 
         {/*
-         * The five links are ~350px of unbreakable labels — wider than a 360px
+         * The six links are ~420px of unbreakable labels — wider than a 360px
          * phone once the logo has taken its share. `basis-full` gives them a row
          * of their own below `sm`, and `flex-wrap` is what stops the last one
          * pushing the bar off the side of the screen at the narrowest widths.

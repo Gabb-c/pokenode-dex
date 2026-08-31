@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, type UseQueryResult } from '@tanstack/react-query'
 import { defensiveProfileFrom, resourceId, type Pokemon } from 'pokenode-ts'
 import { scoped } from '../client'
 import { isBattleType } from '@/lib/types'
@@ -52,3 +52,11 @@ export const typeMembersQuery = (name: string) =>
       return new Set(type.pokemon.map((entry) => resourceId(entry.pokemon)))
     },
   })
+
+/**
+ * The membership sets of a `useQueries` batch, for `filterDex`.
+ *
+ * Module-scoped rather than inline: the observer keys its memo on this identity.
+ */
+export const membersOf = (results: UseQueryResult<ReadonlySet<number>>[]) =>
+  results.map((result) => result.data)

@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as GamesDexRouteImport } from './routes/games.$dex'
 import { Route as MovesIndexRouteImport } from './routes/moves.index'
 import { Route as MovesNameRouteImport } from './routes/moves.$name'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
@@ -29,6 +31,16 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesDexRoute = GamesDexRouteImport.update({
+  id: '/games/$dex',
+  path: '/games/$dex',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MovesIndexRoute = MovesIndexRouteImport.update({
@@ -80,11 +92,13 @@ const TypesNameRoute = TypesNameRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/games/$dex': typeof GamesDexRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/games/': typeof GamesIndexRoute
   '/moves/': typeof MovesIndexRoute
   '/play/': typeof PlayIndexRoute
   '/pokemon/': typeof PokemonIndexRoute
@@ -93,11 +107,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/games/$dex': typeof GamesDexRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/games': typeof GamesIndexRoute
   '/moves': typeof MovesIndexRoute
   '/play': typeof PlayIndexRoute
   '/pokemon': typeof PokemonIndexRoute
@@ -107,11 +123,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/games/$dex': typeof GamesDexRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/games/': typeof GamesIndexRoute
   '/moves/': typeof MovesIndexRoute
   '/play/': typeof PlayIndexRoute
   '/pokemon/': typeof PokemonIndexRoute
@@ -122,11 +140,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/games/$dex'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/games/'
     | '/moves/'
     | '/play/'
     | '/pokemon/'
@@ -135,11 +155,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/games/$dex'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/games'
     | '/moves'
     | '/play'
     | '/pokemon'
@@ -148,11 +170,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/games/$dex'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/games/'
     | '/moves/'
     | '/play/'
     | '/pokemon/'
@@ -162,11 +186,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  GamesDexRoute: typeof GamesDexRoute
   MovesNameRoute: typeof MovesNameRoute
   PlayBattleRoute: typeof PlayBattleRoute
   PlaySilhouetteRoute: typeof PlaySilhouetteRoute
   PokemonNameRoute: typeof PokemonNameRoute
   TypesNameRoute: typeof TypesNameRoute
+  GamesIndexRoute: typeof GamesIndexRoute
   MovesIndexRoute: typeof MovesIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
   PokemonIndexRoute: typeof PokemonIndexRoute
@@ -187,6 +213,20 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/': {
+      id: '/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$dex': {
+      id: '/games/$dex'
+      path: '/games/$dex'
+      fullPath: '/games/$dex'
+      preLoaderRoute: typeof GamesDexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moves/': {
@@ -258,11 +298,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  GamesDexRoute: GamesDexRoute,
   MovesNameRoute: MovesNameRoute,
   PlayBattleRoute: PlayBattleRoute,
   PlaySilhouetteRoute: PlaySilhouetteRoute,
   PokemonNameRoute: PokemonNameRoute,
   TypesNameRoute: TypesNameRoute,
+  GamesIndexRoute: GamesIndexRoute,
   MovesIndexRoute: MovesIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
   PokemonIndexRoute: PokemonIndexRoute,

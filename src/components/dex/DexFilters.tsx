@@ -1,35 +1,35 @@
-import type { NamedAPIResource, Generation } from 'pokenode-ts'
-import { Select } from '@/components/ui/Select'
-import { generationLabel } from '@/lib/format'
+import type { CSSProperties, ReactNode } from 'react'
 import { BATTLE_TYPES, typeVar, type TypeName } from '@/lib/types'
-import type { CSSProperties } from 'react'
 
 export interface DexFilterState {
   q: string
-  gen: string
   types: TypeName[]
 }
 
 interface DexFiltersProps {
   value: DexFilterState
-  generations: NamedAPIResource<Generation>[] | undefined
   showing: number
   total: number
+  /** Whether anything is filtered, including an axis passed as `children`. */
+  active: boolean
   /** The query alone: it reaches the URL debounced, the rest immediately. */
   onQueryChange: (next: string) => void
   onChange: (next: Partial<DexFilterState>) => void
+  onClear: () => void
+  /** The view's own axis, beside the shared controls — the dex passes a generation. */
+  children?: ReactNode
 }
 
 export function DexFilters({
   value,
-  generations,
   showing,
   total,
+  active,
   onQueryChange,
   onChange,
+  onClear,
+  children,
 }: DexFiltersProps) {
-  const filtered = value.q !== '' || value.gen !== '' || value.types.length > 0
-
   function toggleType(name: TypeName) {
     onChange({
       types: value.types.includes(name)
@@ -50,14 +50,7 @@ export function DexFilters({
           className="well w-full max-w-xs px-3 py-1.5 text-sm text-ink-hi placeholder:text-ink-lo"
         />
 
-        <Select label="Generation" value={value.gen} onChange={(gen) => onChange({ gen })}>
-          <option value="">any</option>
-          {generations?.map((generation) => (
-            <option key={generation.name} value={generation.name}>
-              {generationLabel(generation.name)}
-            </option>
-          ))}
-        </Select>
+        {children}
 
         <span className="text-micro text-ink-lo">
           {/* Keyed on the count so a filter landing is visible in the figure. */}
@@ -67,13 +60,10 @@ export function DexFilters({
           of <output data-numeric>{total}</output>
         </span>
 
-        {filtered && (
+        {active && (
           <button
             type="button"
-            onClick={() => {
-              onQueryChange('')
-              onChange({ q: '', gen: '', types: [] })
-            }}
+            onClick={onClear}
             className="btn ml-auto px-2 py-0.5 text-micro text-ink-lo hover:text-ink-hi"
           >
             clear filters
@@ -83,16 +73,16 @@ export function DexFilters({
 
       <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by type">
         {BATTLE_TYPES.map((name) => {
-          const active = value.types.includes(name)
+          const selected = value.types.includes(name)
           return (
             <button
               key={name}
               type="button"
-              aria-pressed={active}
+              aria-pressed={selected}
               onClick={() => toggleType(name)}
               style={{ '--t': typeVar(name) } as CSSProperties}
               className={`type-chip transition-[opacity,background-color,border-color] ${
-                active ? '' : 'opacity-45 hover:opacity-80'
+                selected ? '' : 'opacity-45 hover:opacity-80'
               }`}
             >
               {name}

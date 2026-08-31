@@ -1,29 +1,28 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import type { Generation, NamedAPIResource } from 'pokenode-ts'
 import { DexFilters, type DexFilterState } from './DexFilters'
 
-const GENERATIONS = [
-  { name: 'generation-i', url: '' },
-  { name: 'generation-ii', url: '' },
-] as NamedAPIResource<Generation>[]
+const EMPTY: DexFilterState = { q: '', types: [] }
 
-const EMPTY: DexFilterState = { q: '', gen: '', types: [] }
-
-function setup(value: Partial<DexFilterState> = {}) {
+function setup(value: Partial<DexFilterState> = {}, children?: React.ReactNode) {
   const onChange = vi.fn()
   const onQueryChange = vi.fn()
+  const onClear = vi.fn()
+  const merged = { ...EMPTY, ...value }
   render(
     <DexFilters
-      value={{ ...EMPTY, ...value }}
-      generations={GENERATIONS}
+      value={merged}
       showing={12}
       total={1302}
+      active={merged.q !== '' || merged.types.length > 0}
       onQueryChange={onQueryChange}
       onChange={onChange}
-    />,
+      onClear={onClear}
+    >
+      {children}
+    </DexFilters>,
   )
-  return { onChange, onQueryChange }
+  return { onChange, onQueryChange, onClear }
 }
 
 describe('DexFilters', () => {
@@ -59,20 +58,10 @@ describe('DexFilters', () => {
     expect(screen.getByRole('button', { name: 'water' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('lists the generations it was given, titled', () => {
-    setup()
+  it('renders the axis the view brought with it', () => {
+    setup({}, <button type="button">Generation</button>)
 
-    expect(screen.getByRole('option', { name: 'Gen I' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: 'Gen II' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: 'any' })).toBeInTheDocument()
-  })
-
-  it('reports a chosen generation', () => {
-    const { onChange } = setup()
-
-    fireEvent.change(screen.getByLabelText(/generation/i), { target: { value: 'generation-ii' } })
-
-    expect(onChange).toHaveBeenCalledExactlyOnceWith({ gen: 'generation-ii' })
+    expect(screen.getByRole('button', { name: 'Generation' })).toBeInTheDocument()
   })
 
   it('shows the counts', () => {
@@ -86,12 +75,11 @@ describe('DexFilters', () => {
     expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument()
   })
 
-  it('clears the debounced field and the rest together', () => {
-    const { onChange, onQueryChange } = setup({ q: 'pika', types: ['fire'] })
+  it('leaves clearing to the view, which owns the axes it does not', () => {
+    const { onClear } = setup({ q: 'pika', types: ['fire'] })
 
     fireEvent.click(screen.getByRole('button', { name: /clear filters/i }))
 
-    expect(onQueryChange).toHaveBeenCalledExactlyOnceWith('')
-    expect(onChange).toHaveBeenCalledExactlyOnceWith({ q: '', gen: '', types: [] })
+    expect(onClear).toHaveBeenCalledOnce()
   })
 })

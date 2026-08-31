@@ -18,6 +18,7 @@ prove it exists:
 | `getPokemonSpriteUrl()` | Grid artwork with no extra request, the sprite viewer's set/shiny/back/female switcher, and the silhouettes under `/play`. |
 | `PokenodeError` | Decides Query's retry policy and renders the error UI. |
 | `logger` | Feeds the status rail along the bottom of every page. |
+| `getPokedexByName()` | A regional Pokédex under `/games`: one request carries every species it catalogues and the number it gave them. |
 | `resolve()` on an unnamed link | The machine behind a TM, which the API points at by URL alone. |
 | Section clients | `pokemon`, `move`, `game` and `utility` — including `getPokemonLocationAreaById` for wild encounters. |
 

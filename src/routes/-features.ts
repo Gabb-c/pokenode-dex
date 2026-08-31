@@ -8,6 +8,7 @@
 import clientSource from '@/api/client.ts?raw'
 import queryClientSource from '@/api/query-client.ts?raw'
 import searchIndexSource from '@/api/queries/search-index.ts?raw'
+import gameQueriesSource from '@/api/queries/games.ts?raw'
 import typeQueriesSource from '@/api/queries/types.ts?raw'
 import moveQueriesSource from '@/api/queries/moves.ts?raw'
 import pastTypesSource from '@/lib/pokemon/past-types.ts?raw'
@@ -51,6 +52,14 @@ export const FEATURES: Feature[] = [
       'paginate manages the offset and the limit itself. Three requests give every Pokémon the API knows, which is what lets the filter answer without touching the network again.',
     source: searchIndexSource,
     extract: 'export const searchIndexQuery',
+  },
+  {
+    title: 'A whole regional dex in one request',
+    nav: 'Regional dexes',
+    blurb:
+      'getPokedexByName carries every species a dex catalogues and the number it gave them. The grid it feeds resolves nothing: the entries are joined to the index already in memory, and the sprites are built from ids.',
+    source: gameQueriesSource,
+    extract: 'export const pokedexQuery',
   },
   {
     title: 'Following links',
