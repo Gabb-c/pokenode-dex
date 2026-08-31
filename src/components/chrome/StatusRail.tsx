@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { stats } from '@/api/client'
 import { clearAllCaches, l1Hits } from '@/api/query-client'
 import { transportLog, type ResponseSource, type TransportEvent } from '@/api/transport-log'
+import { useRailOpen } from '@/lib/rail'
 
 const SOURCE_LABEL: Record<ResponseSource, string> = {
   network: 'network',
@@ -49,6 +50,9 @@ function endpoint(url: string): string {
 }
 
 export function StatusRail() {
+  const [open, setOpen] = useRailOpen()
+  // All three stay subscribed while the rail is folded: they tally work that
+  // happens either way, and dropping them would only reopen onto stale figures.
   const snapshot = useSyncExternalStore(
     transportLog.subscribe,
     transportLog.getSnapshot,
@@ -79,7 +83,7 @@ export function StatusRail() {
       <div className="mx-auto flex max-w-[1400px] items-center gap-x-5 overflow-x-auto overscroll-x-contain px-4 py-1.5 text-micro sm:flex-wrap sm:gap-y-1 sm:overflow-x-visible">
         <span className="shrink-0 text-ink-lo uppercase">transport</span>
 
-        {latest && current ? (
+        {!open ? null : latest && current ? (
           // Keyed on the event, so a tier change arrives rather than replaces.
           <span
             key={`${latest.kind}:${latest.url}`}
@@ -100,24 +104,37 @@ export function StatusRail() {
         )}
 
         <span className="ml-auto flex shrink-0 items-center gap-4 text-ink-lo">
-          <Tally label="pending" value={snapshot.inFlight} />
-          <Tally label="L1" value={l1} />
-          <Tally label="L2" value={counts.cache} />
-          <Tally label="304" value={counts.revalidated} />
-          <Tally label="net" value={counts.network} />
-          {counts.inFlight > 0 && <Tally label="coalesced" value={counts.inFlight} />}
-          {/* Only once retries have made it more than the round trips already shown. */}
-          {counts.roundTrips > counts.network + counts.revalidated && (
-            <Tally label="attempts" value={counts.roundTrips} />
+          {open && (
+            <>
+              <Tally label="pending" value={snapshot.inFlight} />
+              <Tally label="L1" value={l1} />
+              <Tally label="L2" value={counts.cache} />
+              <Tally label="304" value={counts.revalidated} />
+              <Tally label="net" value={counts.network} />
+              {counts.inFlight > 0 && <Tally label="coalesced" value={counts.inFlight} />}
+              {/* Only once retries have made it more than the round trips already shown. */}
+              {counts.roundTrips > counts.network + counts.revalidated && (
+                <Tally label="attempts" value={counts.roundTrips} />
+              )}
+              {snapshot.cancelled > 0 && <Tally label="cancelled" value={snapshot.cancelled} />}
+              {snapshot.errors > 0 && <Tally label="errors" value={snapshot.errors} />}
+              <button
+                type="button"
+                onClick={() => void clearAllCaches().then(() => location.reload())}
+                className="shrink-0 rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
+              >
+                clear caches
+              </button>
+            </>
           )}
-          {snapshot.cancelled > 0 && <Tally label="cancelled" value={snapshot.cancelled} />}
-          {snapshot.errors > 0 && <Tally label="errors" value={snapshot.errors} />}
           <button
             type="button"
-            onClick={() => void clearAllCaches().then(() => location.reload())}
+            aria-expanded={open}
+            aria-label={`${open ? 'Hide' : 'Show'} transport statistics`}
+            onClick={() => setOpen(!open)}
             className="shrink-0 rounded-[3px] border border-line px-2 py-0.5 hover:border-line-strong hover:text-ink-hi"
           >
-            clear caches
+            {open ? 'hide' : 'show'}
           </button>
         </span>
       </div>

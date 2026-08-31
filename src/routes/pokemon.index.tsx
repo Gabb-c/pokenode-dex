@@ -16,6 +16,7 @@ import { PokemonCard } from '@/components/dex/PokemonCard'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { filterDex } from '@/lib/dex-filter'
 import { useDexSearch } from '@/lib/dex-search'
+import { usePageScroller } from '@/lib/virtual-page'
 import { isBattleType, type TypeName } from '@/lib/types'
 
 interface DexSearch {
@@ -84,7 +85,7 @@ function DexGrid() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <DexFilters
         value={{ q: draft, gen, types }}
         generations={generations}
@@ -118,8 +119,11 @@ function VirtualDexRows({
 }) {
   // Held as state, not a ref: the empty state unmounts this element, and a ref
   // identity never changes, so an effect keyed on one would not re-attach.
-  const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
-  const columns = useColumns(scroller)
+  const [list, setList] = useState<HTMLDivElement | null>(null)
+  // The grid scrolls with the page rather than inside itself; `scrollMargin` is
+  // what the filters above it are taking.
+  const { scroller, scrollMargin } = usePageScroller(list)
+  const columns = useColumns(list)
 
   // oxlint-disable-next-line react/incompatible-library -- the bail-out is contained to this component
   const virtualizer = useVirtualizer({
@@ -127,15 +131,16 @@ function VirtualDexRows({
     getScrollElement: () => scroller,
     estimateSize: () => ROW_HEIGHT,
     overscan: 4,
+    scrollMargin,
   })
 
   return (
-    <div ref={setScroller} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-      {/* The fade sits here rather than on the scroller — keying that would
-          rebuild the ResizeObserver and the virtualizer on every keystroke —
-          and rather than on a row, which mounts and unmounts as it scrolls.
-          Opacity only: a transform on a scroll container's child is a
-          containing block nobody asked for. */}
+    <div ref={setList}>
+      {/* The fade sits here rather than on the measured element — keying that
+          would rebuild the ResizeObservers and the virtualizer on every
+          keystroke — and rather than on a row, which mounts and unmounts as it
+          scrolls. Opacity only: a transform here would be a containing block
+          nobody asked for. */}
       <div
         key={signature}
         className="fade-in relative w-full"
@@ -149,7 +154,7 @@ function VirtualDexRows({
             className="absolute inset-x-0 top-0 grid gap-3 pb-3"
             style={{
               height: row.size,
-              transform: `translateY(${row.start}px)`,
+              transform: `translateY(${row.start - scrollMargin}px)`,
               gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
             }}
           >
@@ -163,7 +168,7 @@ function VirtualDexRows({
   )
 }
 
-/** Columns follow the container width, so the virtualizer can page by row. */
+/** Columns follow the grid's own width, so the virtualizer can page by row. */
 function useColumns(element: HTMLElement | null): number {
   const [width, setWidth] = useState(0)
 

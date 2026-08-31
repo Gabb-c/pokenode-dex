@@ -11,6 +11,7 @@ import { humanize } from '@/lib/format'
 import { useDexSearch } from '@/lib/dex-search'
 import { filterMoves, indexMoves, type MoveRow } from '@/lib/move-filter'
 import { BATTLE_TYPES, isBattleType, type TypeName } from '@/lib/types'
+import { usePageScroller } from '@/lib/virtual-page'
 
 interface MoveSearch {
   /** Each is absent rather than empty, so an unfiltered list has a clean URL. */
@@ -72,7 +73,7 @@ function MoveIndex() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl tracking-tight">Moves</h1>
 
@@ -147,7 +148,10 @@ function VirtualMoveRows({
   matches: readonly MoveRow[]
   signature: string
 }) {
-  const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
+  const [list, setList] = useState<HTMLDivElement | null>(null)
+  // The list scrolls with the page rather than inside itself; `scrollMargin` is
+  // what the header above it is taking.
+  const { scroller, scrollMargin } = usePageScroller(list)
 
   // oxlint-disable-next-line react/incompatible-library -- the bail-out is contained to this component
   const virtualizer = useVirtualizer({
@@ -155,12 +159,15 @@ function VirtualMoveRows({
     getScrollElement: () => scroller,
     estimateSize: () => ROW_HEIGHT,
     overscan: 8,
+    scrollMargin,
   })
 
   return (
-    <div ref={setScroller} className="panel min-h-0 flex-1 overflow-y-auto overscroll-contain">
+    // `overflow-hidden` only for the corners: the rows are positioned, and the
+    // panel's radius has nothing to clip them with otherwise.
+    <div ref={setList} className="panel overflow-hidden">
       {/* Container, not row: rows mount and unmount as they scroll. See the
-          dex grid for why this is not on the scroller either. */}
+          dex grid for why this is not on the measured element either. */}
       <div
         key={signature}
         className="fade-in relative w-full"
@@ -174,7 +181,7 @@ function VirtualMoveRows({
               to="/moves/$name"
               params={{ name: row.name }}
               className="absolute inset-x-0 top-0 flex items-center gap-3 border-b border-line px-3 text-sm text-ink-hi hover:bg-surface-2"
-              style={{ height: item.size, transform: `translateY(${item.start}px)` }}
+              style={{ height: item.size, transform: `translateY(${item.start - scrollMargin}px)` }}
             >
               <span className="w-12 shrink-0 text-micro text-ink-lo" data-numeric>
                 {row.id}

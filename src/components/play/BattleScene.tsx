@@ -6,17 +6,12 @@ import { humanize } from '@/lib/format'
 /**
  * The sets tried, in order.
  *
- * A battle wants the game sprite rather than the artwork — it is the only set
- * drawn from behind. Written out rather than mapped because
- * `PokemonSpriteOptions` is a discriminated union; see `SpriteViewer`.
+ * A battle wants the game sprite rather than the artwork. Both sides use the
+ * front-facing one: the games only show a back sprite because they stack the
+ * two diagonally, and this scene is two columns side by side at every width, so
+ * a back sprite faces away from the opponent rather than towards it.
  */
-function candidates(id: number, back: boolean): readonly string[] {
-  if (back) {
-    return [
-      getPokemonSpriteUrl(id, { variant: 'default', back: true }),
-      getPokemonSpriteUrl(id, { variant: 'default' }),
-    ]
-  }
+function candidates(id: number): readonly string[] {
   return [
     getPokemonSpriteUrl(id, { variant: 'default' }),
     getPokemonSpriteUrl(id, { variant: 'official-artwork' }),
@@ -90,7 +85,9 @@ function Combatant({ fighter, side, event, beat }: CombatantProps) {
       {/* 96px is the game sprite's own size, so a phone shows it unscaled and a
           wider screen gets the enlargement. */}
       <div className="stage h-24 sm:h-40">
-        <Portrait id={fighter.id} name={fighter.name} back={side === 'player'} motion={motion} />
+        {/* Front sprites face the viewer's left, so the foe in the left
+            column is the one flipped, and the pair faces in. */}
+        <Portrait id={fighter.id} name={fighter.name} mirrored={side === 'foe'} motion={motion} />
       </div>
     </div>
   )
@@ -128,15 +125,15 @@ function HealthBar({ fighter }: { fighter: Fighter }) {
 interface PortraitProps {
   id: number
   name: string
-  back: boolean
+  mirrored: boolean
   motion: string
 }
 
-function Portrait({ id, name, back, motion }: PortraitProps) {
+function Portrait({ id, name, mirrored, motion }: PortraitProps) {
   // The URLs that failed, not a flag: this component outlives a bout, so a
   // boolean would follow one Pokémon into the next.
   const [failed, setFailed] = useState<readonly string[]>([])
-  const url = candidates(id, back).find((candidate) => !failed.includes(candidate))
+  const url = candidates(id).find((candidate) => !failed.includes(candidate))
   if (!url) return null
 
   return (
@@ -149,6 +146,10 @@ function Portrait({ id, name, back, motion }: PortraitProps) {
       decoding="async"
       referrerPolicy="no-referrer"
       onError={() => setFailed((current) => [...current, url])}
+      // The standalone `scale` property, never a transform: every one of the
+      // motion classes above sets `transform`, and a mirror written as one would
+      // be dropped for the length of each animation.
+      style={mirrored ? { scale: '-1 1' } : undefined}
       className={`max-h-24 w-auto max-w-full object-contain [image-rendering:pixelated] sm:max-h-40 ${motion}`}
     />
   )

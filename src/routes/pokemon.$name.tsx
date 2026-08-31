@@ -127,7 +127,11 @@ function PokemonDetail() {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
+      {/* The mobile track is `minmax(0,1fr)` rather than implicit `auto`:
+          an auto track leaves every item at `min-width: auto`, and the 475px
+          artwork and the learnset table then widen the page instead of
+          fitting or scrolling inside their own panels. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
         {/*
          * Below `lg` the two columns dissolve — `contents` drops this wrapper as
          * a box, so its panels become grid items in their own right and can be
@@ -137,7 +141,7 @@ function PokemonDetail() {
          */}
         <div className="contents lg:flex lg:flex-col lg:gap-4">
           <SpriteViewer id={pokemon.id} name={displayName} tint={tint} />
-          <div className="order-3 flex flex-col gap-4 lg:order-none lg:contents">
+          <div className="order-3 flex min-w-0 flex-col gap-4 lg:order-none lg:contents">
             <Vitals pokemon={pokemon} species={species} />
             {pokemon.held_items.length > 0 && (
               <Suspense fallback={<Skeleton label="Held items" />}>
@@ -147,7 +151,7 @@ function PokemonDetail() {
           </div>
         </div>
 
-        <div className="order-2 flex flex-col gap-6 lg:order-none">
+        <div className="order-2 flex min-w-0 flex-col gap-6 lg:order-none">
           {flavor && (
             <div className="panel p-4">
               {/* The panel holds the column; the measure holds the line length. */}
