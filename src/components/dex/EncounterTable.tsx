@@ -23,11 +23,17 @@ export function EncounterTable({ rows }: { rows: readonly EncounterRow[] }) {
   return (
     // Keyed on the version by its caller: the rows are filtered client-side, so
     // nothing here would otherwise remount when the picker moves.
-    <div className="fade-in overflow-x-auto">
-      <table className="w-full min-w-max border-collapse text-sm">
+    <div className="fade-in overflow-x-auto overscroll-x-contain">
+      {/*
+       * `min-w-max` only from `sm`. Area names run to "Kanto Route 2 South
+       * Towards Viridian City", and holding every one of them on a single line
+       * turns a phone's whole encounter panel into a sideways scroll. Below that
+       * the cells wrap instead, which costs height and keeps all five columns.
+       */}
+      <table className="w-full border-collapse text-sm sm:min-w-max">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">
-            <th scope="col" className="p-2 text-left">
+            <th scope="col" className="min-w-32 p-2 text-left">
               Where
             </th>
             <th scope="col" className="p-2 text-left">

@@ -15,7 +15,7 @@ export function MoveTable({ moves }: { moves: readonly LearnedMove[] }) {
 
   return (
     // Every picker change re-suspends this table, so its own mount is the swap.
-    <div className="fade-in overflow-x-auto">
+    <div className="fade-in overflow-x-auto overscroll-x-contain">
       <table className="w-full min-w-max border-collapse text-sm">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">
@@ -30,13 +30,20 @@ export function MoveTable({ moves }: { moves: readonly LearnedMove[] }) {
             <th scope="col" className="p-2 text-left">
               Type
             </th>
-            <th scope="col" className="p-2 text-left">
+            {/*
+             * Seven columns is 385px of unbreakable content on a 358px phone, and
+             * a table that scrolls sideways inside a column that scrolls down is
+             * a bad trade on touch. Class and accuracy are the two a learnset is
+             * least often read for, so they wait for the width to appear — the
+             * move's own page carries every figure either way.
+             */}
+            <th scope="col" className="hidden p-2 text-left sm:table-cell">
               Class
             </th>
             <th scope="col" className="p-2 text-right">
               Power
             </th>
-            <th scope="col" className="p-2 text-right">
+            <th scope="col" className="hidden p-2 text-right sm:table-cell">
               Acc.
             </th>
             <th scope="col" className="p-2 text-right">
@@ -79,13 +86,13 @@ function MoveRow({ entry, showLevel }: { entry: LearnedMove; showLevel: boolean 
         <TypeChip name={move.type.name} />
       </td>
       {/* Spelled out rather than colour-coded: the class is the row's only other axis. */}
-      <td className="p-2 text-ink-mid">
+      <td className="hidden p-2 text-ink-mid sm:table-cell">
         {move.damage_class ? humanize(move.damage_class.name) : '—'}
       </td>
       <td className="p-2 text-right text-ink-mid" data-numeric>
         {figure(move.power)}
       </td>
-      <td className="p-2 text-right text-ink-mid" data-numeric>
+      <td className="hidden p-2 text-right text-ink-mid sm:table-cell" data-numeric>
         {figure(move.accuracy)}
       </td>
       <td className="p-2 text-right text-ink-mid" data-numeric>

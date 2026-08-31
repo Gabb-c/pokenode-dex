@@ -59,7 +59,9 @@ function BattleGame() {
     <section className="flex flex-col gap-4">
       <header>
         <h1 className="text-2xl tracking-tight">Battle</h1>
-        <p className="mt-1 text-sm text-ink-lo">
+        {/* Five lines on a phone, and once a duel is on it is five lines of
+            explanation sitting between the reader and the fight. */}
+        <p className={`mt-1 text-sm text-ink-lo ${me ? 'hidden sm:block' : ''}`}>
           One Pokémon each at level {LEVEL}, four moves off the real level-up learnset, and the
           damage formula the games have used since Ruby. Pick a side; the opponent is drawn from
           the dex.

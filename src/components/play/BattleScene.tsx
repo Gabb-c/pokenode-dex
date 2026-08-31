@@ -36,9 +36,17 @@ interface BattleSceneProps {
   beat: number
 }
 
+/**
+ * Two columns at every width.
+ *
+ * Stacking them on a phone put the scene at 500px in a 610px window, which left
+ * the move menu below the fold — the player scrolled down to attack and back up
+ * to watch it land. Side by side the pair is a third of that, and the turn and
+ * the choice are on screen together.
+ */
 export function BattleScene({ player, foe, event, beat }: BattleSceneProps) {
   return (
-    <div className="panel grid gap-6 p-4 sm:grid-cols-2">
+    <div className="panel grid grid-cols-2 gap-3 p-3 sm:gap-6 sm:p-4">
       <Combatant fighter={foe} side="foe" event={event} beat={beat} />
       <Combatant fighter={player} side="player" event={event} beat={beat} />
     </div>
@@ -68,17 +76,20 @@ function Combatant({ fighter, side, event, beat }: CombatantProps) {
         : ''
 
   return (
-    <div className={`flex flex-col gap-2 ${side === 'player' ? 'sm:order-2' : ''}`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg">{humanize(fighter.name)}</h2>
-        <span className="text-micro uppercase text-ink-lo">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-2">
+        {/* A column is half a phone wide, and Crabominable has to fit in it. */}
+        <h2 className="truncate text-base sm:text-lg">{humanize(fighter.name)}</h2>
+        <span className="shrink-0 text-micro uppercase text-ink-lo">
           Lv <output data-numeric>{fighter.level}</output>
         </span>
       </div>
 
       <HealthBar fighter={fighter} />
 
-      <div className="stage h-40">
+      {/* 96px is the game sprite's own size, so a phone shows it unscaled and a
+          wider screen gets the enlargement. */}
+      <div className="stage h-24 sm:h-40">
         <Portrait id={fighter.id} name={fighter.name} back={side === 'player'} motion={motion} />
       </div>
     </div>
@@ -93,7 +104,10 @@ function HealthBar({ fighter }: { fighter: Fighter }) {
   const style = { '--t': tone, '--fill': `${ratio * 100}%` } as CSSProperties
 
   return (
-    <div className="grid grid-cols-[1fr_4.5rem] items-center gap-3" style={style}>
+    <div
+      className="grid grid-cols-[1fr_3.25rem] items-center gap-2 sm:grid-cols-[1fr_4.5rem] sm:gap-3"
+      style={style}
+    >
       <div
         role="meter"
         aria-label={`${humanize(fighter.name)} HP`}
@@ -104,7 +118,7 @@ function HealthBar({ fighter }: { fighter: Fighter }) {
       >
         <div className="hp-fill h-full rounded-full bg-[var(--t)]" style={{ width: 'var(--fill)' }} />
       </div>
-      <output className="text-right text-sm text-ink-hi">
+      <output className="text-right text-micro text-ink-hi sm:text-sm">
         {fighter.hp}/{fighter.stats.hp}
       </output>
     </div>
@@ -135,7 +149,7 @@ function Portrait({ id, name, back, motion }: PortraitProps) {
       decoding="async"
       referrerPolicy="no-referrer"
       onError={() => setFailed((current) => [...current, url])}
-      className={`max-h-40 w-auto max-w-full object-contain [image-rendering:pixelated] ${motion}`}
+      className={`max-h-24 w-auto max-w-full object-contain [image-rendering:pixelated] sm:max-h-40 ${motion}`}
     />
   )
 }

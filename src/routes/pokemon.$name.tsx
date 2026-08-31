@@ -128,17 +128,26 @@ function PokemonDetail() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
-        <div className="flex flex-col gap-4">
+        {/*
+         * Below `lg` the two columns dissolve — `contents` drops this wrapper as
+         * a box, so its panels become grid items in their own right and can be
+         * ordered against the ones opposite. A phone then reads specimen,
+         * description, stats, and meets the paperwork afterwards, instead of
+         * scrolling past 550px of sprite and figures to reach the first stat.
+         */}
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
           <SpriteViewer id={pokemon.id} name={displayName} tint={tint} />
-          <Vitals pokemon={pokemon} species={species} />
-          {pokemon.held_items.length > 0 && (
-            <Suspense fallback={<Skeleton label="Held items" />}>
-              <HeldItems pokemon={pokemon} />
-            </Suspense>
-          )}
+          <div className="order-3 flex flex-col gap-4 lg:order-none lg:contents">
+            <Vitals pokemon={pokemon} species={species} />
+            {pokemon.held_items.length > 0 && (
+              <Suspense fallback={<Skeleton label="Held items" />}>
+                <HeldItems pokemon={pokemon} />
+              </Suspense>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="order-2 flex flex-col gap-6 lg:order-none">
           {flavor && (
             <div className="panel p-4">
               {/* The panel holds the column; the measure holds the line length. */}

@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `resizes-content` shrinks the layout viewport when the on-screen keyboard
+         opens, so the shell's `h-dvh` follows it and a focused field stays above
+         the keys rather than behind them. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
+    />
+    <!-- Filled from --surface-0 by `paintBrowserChrome`, so the value is never
+         written down twice. -->
+    <meta name="theme-color" />
     <meta
       name="description"
       content="A Pokédex built on pokenode-ts — a typed PokéAPI client with zero runtime dependencies."

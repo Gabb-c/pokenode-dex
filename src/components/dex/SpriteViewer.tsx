@@ -78,7 +78,9 @@ export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
       className="panel flex flex-col gap-3 border-[color-mix(in_oklch,var(--t)_35%,var(--line))] p-4"
       style={{ '--t': tint } as CSSProperties}
     >
-      <div className="grid h-56 place-items-center">
+      {/* The frame is the tallest thing on a phone's detail page, and the two
+          rows of controls under it push the stats further still. */}
+      <div className="grid h-40 place-items-center sm:h-56">
         {missing ? (
           <p className="fade-in text-center text-micro text-ink-lo">
             The sprite repository has no image for this combination.
@@ -91,7 +93,7 @@ export function SpriteViewer({ id, name, tint }: SpriteViewerProps) {
             decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setFailedUrl(url)}
-            className="fade-in max-h-56 max-w-full object-contain"
+            className="fade-in max-h-40 max-w-full object-contain sm:max-h-56"
           />
         )}
       </div>

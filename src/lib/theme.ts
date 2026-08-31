@@ -26,6 +26,21 @@ const FADE_MS = 240
 let fading: ReturnType<typeof setTimeout> | undefined
 
 /**
+ * Tints the browser's own chrome — the address bar on a phone — to the surface
+ * the page sits on.
+ *
+ * Read off the computed token rather than duplicated into the meta tag, so
+ * theme.css stays the only place a colour is written down. Exported because the
+ * first paint needs it too: `apply` only ever runs on a flip.
+ */
+export function paintBrowserChrome() {
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (!meta) return
+  const surface = getComputedStyle(document.documentElement).getPropertyValue('--surface-0')
+  if (surface) meta.setAttribute('content', surface.trim())
+}
+
+/**
  * The palette swap, cross-faded.
  *
  * Only ever runs on a real flip — the inline script in `index.html` sets the
@@ -41,6 +56,7 @@ function apply() {
 
   const dark = choice === 'system' ? prefersDark() : choice === 'dark'
   root.classList.toggle('dark', dark)
+  paintBrowserChrome()
 }
 
 function setTheme(next: ThemeChoice) {
