@@ -20,7 +20,15 @@ export function EvolutionGraph({ chain, current }: { chain: ChainLink; current: 
   if (chain.evolves_to.length === 0) return null
 
   return (
-    <div className="overflow-x-auto">
+    // A three-stage chain is ~480px against a phone's ~310, so it scrolls; the
+    // containment is what keeps that swipe off the page behind it, and the
+    // region gives it a name and a way in that is not a drag.
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label="Evolution chain"
+      className="overflow-x-auto overscroll-x-contain"
+    >
       <Node link={chain} current={current} depth={0} />
     </div>
   )

@@ -13,6 +13,8 @@ export const Route = createFileRoute('/about')({ component: About })
 
 interface Feature {
   title: string
+  /** The library feature, short enough for a jump chip. Doubles as the anchor. */
+  nav: string
   blurb: string
   /** Read straight off disk, so a snippet can never drift from the code it documents. */
   source: string
@@ -20,9 +22,12 @@ interface Feature {
   extract: string
 }
 
+const anchor = (nav: string) => nav.toLowerCase().replace(/\s+/g, '-')
+
 const FEATURES: Feature[] = [
   {
     title: 'One transport, one persistent cache',
+    nav: 'Transport',
     blurb:
       'Every section client shares a transport, so a resource fetched through one is served from cache by the rest. The store is localStorage, so it outlives the tab, and revalidate turns an expired entry into a 304 rather than a fresh download.',
     source: clientSource,
@@ -30,6 +35,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Two tiers that do not fight',
+    nav: 'Two tiers',
     blurb:
       'TanStack Query owns staleness and retries; pokenode-ts owns the wire. Retry lives in exactly one of them, and PokenodeError decides what is worth retrying at all — a 404 never is.',
     source: queryClientSource,
@@ -37,6 +43,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Walking a list endpoint',
+    nav: 'Pagination',
     blurb:
       'paginate manages the offset and the limit itself. Three requests give every Pokémon the API knows, which is what lets the filter answer without touching the network again.',
     source: searchIndexSource,
@@ -44,6 +51,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Following links',
+    nav: 'Links',
     blurb:
       'A link carries what it points at, so resolveAll returns Type[] without being told. The concurrency cap is the library keeping the PokéAPI fair-use policy on your behalf.',
     source: typeQueriesSource,
@@ -51,6 +59,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Choosing what not to follow',
+    nav: 'Narrowing',
     blurb:
       'A Pokémon carries its whole learnset as links — several hundred of them. The work is narrowing to the twenty a reader asked for before resolveAll follows any, and letting the concurrency cap pace the rest.',
     source: moveQueriesSource,
@@ -58,6 +67,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'The chart a generation actually used',
+    nav: 'Past types',
     blurb:
       'relationsFor reads past_damage_relations, so the type chart can be asked what it looked like in Gen I — and nothing is guessed for a type that did not exist yet. The defender needs the same treatment, which is what this does: a matchup scoped to a generation is only honest if both sides are.',
     source: pastTypesSource,
@@ -65,6 +75,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'One entry per game, in one language',
+    nav: 'Language',
     blurb:
       'localize picks a single entry and stops. Flavour text is published once per version group, so the question is which of the translated ones — and that needs them all. localizeAll narrows to the language and leaves the choice where it belongs.',
     source: languageSource,
@@ -72,6 +83,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Sprites without a request',
+    nav: 'Sprites',
     blurb:
       'getPokemonSpriteUrl builds the URL from an id. The grid has ids from the list it already fetched, so a thousand cards cost no extra round trips.',
     source: cardSource,
@@ -81,7 +93,7 @@ const FEATURES: Feature[] = [
 
 function About() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-10">
+    <div className="mx-auto flex max-w-3xl flex-col gap-8 sm:gap-10">
       <header>
         <h1 className="text-2xl tracking-tight">How this app uses pokenode-ts</h1>
         <p className="mt-2 text-sm text-ink-mid">
@@ -91,12 +103,48 @@ function About() {
         </p>
       </header>
 
+      {/* Ninety-odd lines of source is a long scroll on a phone; the chips are
+          the way past one. They bleed to the screen edge and scroll sideways
+          below `sm`, the way the rail does, and wrap above it. */}
+      <nav
+        aria-label="Features"
+        className="-mx-4 flex gap-2 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0"
+      >
+        {FEATURES.map((feature) => (
+          <a
+            key={feature.nav}
+            href={`#${anchor(feature.nav)}`}
+            className="well shrink-0 px-2.5 py-1 text-micro uppercase text-ink-lo transition-colors hover:border-line-strong hover:text-ink-hi"
+          >
+            {feature.nav}
+          </a>
+        ))}
+      </nav>
+
       {FEATURES.map((feature) => (
-        <section key={feature.title} className="flex flex-col gap-3">
+        <section
+          key={feature.title}
+          id={anchor(feature.nav)}
+          className="flex scroll-mt-4 flex-col gap-3"
+        >
           <h2 className="text-lg">{feature.title}</h2>
           <p className="text-sm text-ink-mid">{feature.blurb}</p>
-          <pre className="panel overflow-x-auto p-4 text-xs leading-relaxed">
-            <code className="font-mono">{extractDeclaration(feature.source, feature.extract)}</code>
+          {/* A scrollable region needs a name and a way in that is not a drag. */}
+          <pre
+            tabIndex={0}
+            role="region"
+            aria-label={`${feature.title} — source`}
+            className="panel overflow-x-auto overscroll-x-contain p-3 text-xs leading-relaxed sm:p-4"
+          >
+            <code className="font-mono">
+              {extractDeclaration(feature.source, feature.extract)
+                .split('\n')
+                .map((line, index) => (
+                  <span key={`${feature.nav}-${index}`} className="snippet-line">
+                    {line}
+                  </span>
+                ))}
+            </code>
           </pre>
         </section>
       ))}

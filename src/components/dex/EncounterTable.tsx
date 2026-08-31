@@ -23,7 +23,13 @@ export function EncounterTable({ rows }: { rows: readonly EncounterRow[] }) {
   return (
     // Keyed on the version by its caller: the rows are filtered client-side, so
     // nothing here would otherwise remount when the picker moves.
-    <div className="fade-in overflow-x-auto overscroll-x-contain">
+    // A scrollable region needs a name and a way in that is not a drag.
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label="Encounters"
+      className="fade-in overflow-x-auto overscroll-x-contain"
+    >
       {/*
        * `min-w-max` only from `sm`. Area names run to "Kanto Route 2 South
        * Towards Viridian City", and holding every one of them on a single line

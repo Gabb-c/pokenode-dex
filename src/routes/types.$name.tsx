@@ -47,7 +47,7 @@ function TypeDetail() {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex items-baseline gap-4">
+      <header className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
         <h1 className="text-2xl tracking-tight">{humanize(type.name)}</h1>
         <TypeChip name={type.name} asLink={false} />
         <span className="text-micro text-ink-lo">

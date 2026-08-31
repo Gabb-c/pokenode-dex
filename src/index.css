@@ -49,6 +49,11 @@
   @media (pointer: coarse) {
     input, select, textarea { font-size: max(1rem, 1em) !important; }
     button, select { min-height: 2rem; }
+    /* A checkbox takes its size from its own box rather than its text, so the
+       rule above leaves the sprite facets at ~16px. Its label is the rest of
+       the target, which is why that carries the house minimum instead. */
+    input[type="checkbox"] { inline-size: 1.25rem; block-size: 1.25rem; }
+    label:has(> input[type="checkbox"]) { min-height: 2rem; }
   }
 
   @keyframes stat-fill {
@@ -192,6 +197,28 @@
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: var(--radius-well);
+  }
+
+  /*
+   * A line of a source listing. The widest line the about page shows is 115
+   * columns against a phone's ~43, and a sideways drag near the left edge is
+   * the OS back gesture rather than a scroll — so below `sm` the listing wraps
+   * instead. Each line is its own block because `text-indent` hangs the first
+   * line of a block and no other, which is what keeps the nesting readable
+   * once a line has broken.
+   */
+  .snippet-line {
+    display: block;
+    min-height: 1lh;
+  }
+
+  @media (width < 40rem) {
+    .snippet-line {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding-left: 2ch;
+      text-indent: -2ch;
+    }
   }
 
   /*

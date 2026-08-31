@@ -69,7 +69,10 @@ function MoveDetail() {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
+      {/* The mobile track is `minmax(0,1fr)` rather than implicit `auto`, for
+          the reason the Pokémon page documents: an auto track leaves every item
+          at `min-width: auto` and the widest one then widens the page. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,48rem)]">
         <div className="flex flex-col gap-4">
           <Numbers move={move} />
           <Suspense fallback={<Skeleton label="Machine" />}>

@@ -15,7 +15,13 @@ export function MoveTable({ moves }: { moves: readonly LearnedMove[] }) {
 
   return (
     // Every picker change re-suspends this table, so its own mount is the swap.
-    <div className="fade-in overflow-x-auto overscroll-x-contain">
+    // A scrollable region needs a name and a way in that is not a drag.
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label="Learnset"
+      className="fade-in overflow-x-auto overscroll-x-contain"
+    >
       <table className="w-full min-w-max border-collapse text-sm">
         <thead>
           <tr className="text-micro uppercase text-ink-lo">

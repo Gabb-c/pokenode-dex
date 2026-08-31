@@ -81,8 +81,12 @@ function TypeChart() {
       {/* Keyed on the generation, not per cell: the chart is eighteen squared. */}
       {/* An 18×18 matrix is the one table that genuinely wants a sideways
           scroll; `overscroll-x-contain` keeps the swipe out of the page. */}
+      {/* A scrollable region needs a name and a way in that is not a drag. */}
       <div
         key={gen ?? 'current'}
+        tabIndex={0}
+        role="region"
+        aria-label={`Type chart${gen ? ` for ${generationLabel(gen)}` : ''}`}
         className="fade-in panel w-fit max-w-full overflow-x-auto overscroll-x-contain"
       >
         <table className="min-w-max border-collapse text-micro">

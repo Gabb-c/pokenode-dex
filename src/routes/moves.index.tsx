@@ -183,12 +183,17 @@ function VirtualMoveRows({
               className="absolute inset-x-0 top-0 flex items-center gap-3 border-b border-line px-3 text-sm text-ink-hi hover:bg-surface-2"
               style={{ height: item.size, transform: `translateY(${item.start - scrollMargin}px)` }}
             >
-              <span className="w-12 shrink-0 text-micro text-ink-lo" data-numeric>
+              <span className="w-9 shrink-0 text-micro text-ink-lo sm:w-12" data-numeric>
                 {row.id}
               </span>
               <span className="flex-1 truncate">{humanize(row.name)}</span>
               {row.type && <TypeChip name={row.type} asLink={false} />}
-              <span className="w-20 shrink-0 text-right text-micro uppercase text-ink-lo">
+              {/* The four columns are ~245px of fixed content on a phone's ~310,
+                  which leaves a move name eight characters. The class is the one
+                  a list is least often read for — the same trade the learnset
+                  table makes — and the type chip beside it is the louder half of
+                  what `indexMoves` reads off the two cached queries anyway. */}
+              <span className="hidden w-20 shrink-0 text-right text-micro uppercase text-ink-lo sm:block">
                 {row.damageClass ?? ''}
               </span>
             </Link>

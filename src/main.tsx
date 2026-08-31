@@ -17,6 +17,11 @@ const router = createRouter({
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
+  // `main` is the only scroll container (see `__root.tsx`), so the window
+  // scroll the router resets by default is always already at zero. Without
+  // this, a card tapped from deep in the dex grid opens its detail page at
+  // that offset — clamped to the bottom of a shorter page.
+  scrollToTopSelectors: ['main'],
 })
 
 declare module '@tanstack/react-router' {
