@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { moveQuery } from '@/api/queries/moves'
 import { cached, isNotFound } from '@/api/query-client'
+import { ContestPanel } from '@/components/dex/ContestPanel'
 import { LearnedBy } from '@/components/dex/LearnedBy'
 import { MoveMachine } from '@/components/dex/MoveMachine'
 import { MoveMeta } from '@/components/dex/MoveMeta'
@@ -94,6 +95,9 @@ function MoveDetail() {
           )}
 
           <MoveMeta move={move} />
+          <Suspense fallback={<Skeleton label="Contests" />}>
+            <ContestPanel move={move} />
+          </Suspense>
           <LearnedBy move={move} />
         </div>
       </div>

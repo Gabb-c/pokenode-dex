@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import { getPokemonSpriteUrl } from 'pokenode-ts'
 import type { BattleEvent, Fighter, Side } from '@/lib/battle/engine'
+import type { Status } from '@/lib/battle/status'
 import { humanize } from '@/lib/format'
 
 /**
@@ -81,6 +82,7 @@ function Combatant({ fighter, side, event, beat }: CombatantProps) {
       </div>
 
       <HealthBar fighter={fighter} />
+      <StatusBadge fighter={fighter} />
 
       {/* 96px is the game sprite's own size, so a phone shows it unscaled and a
           wider screen gets the enlargement. */}
@@ -152,5 +154,44 @@ function Portrait({ id, name, mirrored, motion }: PortraitProps) {
       style={mirrored ? { scale: '-1 1' } : undefined}
       className={`max-h-24 w-auto max-w-full object-contain [image-rendering:pixelated] sm:max-h-40 ${motion}`}
     />
+  )
+}
+
+/** The abbreviations the games use, in tones the rail already carries. */
+const STATUS_LABEL: Record<Status, string> = {
+  burn: 'BRN',
+  poison: 'PSN',
+  paralysis: 'PAR',
+  sleep: 'SLP',
+  freeze: 'FRZ',
+}
+
+const STATUS_TONE: Record<Status, string> = {
+  burn: 'text-negative',
+  poison: 'text-negative',
+  paralysis: 'text-caution',
+  sleep: 'text-ink-lo',
+  freeze: 'text-accent',
+}
+
+/**
+ * The condition a fighter is under.
+ *
+ * The row is held open whether or not there is one, so a condition landing does
+ * not shunt the sprite below it down the page mid-turn. The abbreviation is the
+ * whole of the signal — the tone only follows it.
+ */
+function StatusBadge({ fighter }: { fighter: Fighter }) {
+  return (
+    <p className="h-4 text-micro uppercase">
+      {fighter.status ? (
+        // Keyed on the condition so a new one arrives rather than swapping in place.
+        <span key={fighter.status} className={`pop ${STATUS_TONE[fighter.status]}`}>
+          {STATUS_LABEL[fighter.status]}
+        </span>
+      ) : (
+        <span className="sr-only">No condition</span>
+      )}
+    </p>
   )
 }

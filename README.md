@@ -15,12 +15,17 @@ prove it exists:
 | `paginate()` | One walk each of `listPokemons` and `listMoves` builds the indexes the filters, the palette and the guessing game read. |
 | `relationsFor()` / `defensiveProfile()` | The type chart and a Pokémon's matchups, as any past generation knew them. |
 | `localize()` / `localizeAll()` | Names and genera in the language the API published them; flavour text narrowed to that language, then to the newest game. |
-| `getPokemonSpriteUrl()` | Grid artwork with no extra request, the sprite viewer's set/shiny/back/female switcher, and the silhouettes under `/play`. |
+| `getPokemonSpriteUrl()` | Grid artwork with no extra request, the sprite viewer's set/shiny/back/female switcher, the silhouettes under `/play`, and every row that already holds a Pokémon link. |
+| Payload sprites | `Item.sprites` on the item pages, and `Type.sprites` — the game's own type symbols — on the effectiveness chart. |
 | `PokenodeError` | Decides Query's retry policy and renders the error UI. |
 | `logger` | Feeds the status rail along the bottom of every page. |
 | `getPokedexByName()` | A regional Pokédex under `/games`: one request carries every species it catalogues and the number it gave them. |
-| `resolve()` on an unnamed link | The machine behind a TM, which the API points at by URL alone. |
-| Section clients | `pokemon`, `move`, `game` and `utility` — including `getPokemonLocationAreaById` for wild encounters. |
+| `resolve()` on an unnamed link | The machine behind a TM and a move's contest effect, both of which the API points at by URL alone. |
+| `getItemCategoryByName()` | Every TM, HM and TR in one request, under `/machines`. |
+| `listBerryFlavors()` / `listItemCategories()` | The flavour beside a berry and the pocket beside an item, read off the resource that names them rather than resolved per row. |
+| `getRegionByName()` / `getLocationByName()` | `/locations` — the encounter tables approached from the place rather than the species. |
+| `listNatures()` | The stat calculator on a Pokémon's page. |
+| Section clients | `berry`, `contest`, `game`, `item`, `location`, `machine`, `move`, `pokemon` and `utility` — including `getPokemonLocationAreaById` for wild encounters. |
 
 ## Architecture
 
@@ -66,10 +71,10 @@ pnpm dev
 |---|---|
 | `pnpm dev` | dev server |
 | `pnpm build` | typecheck and bundle |
-| `pnpm test` | unit and transport-tier tests |
+| `pnpm test` | unit and transport-tier tests, in watch mode |
+| `pnpm vitest run` | one-shot test run |
 | `pnpm lint` | oxlint |
-| `pnpm check:contrast` | asserts every colour pairing clears 4.5:1 |
-| `pnpm check` | all of the above |
+| `node tools/check-contrast.mjs` | asserts every colour pairing clears 4.5:1 |
 
 ## Design
 

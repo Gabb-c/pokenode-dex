@@ -4,7 +4,13 @@ import { useNavigate } from '@tanstack/react-router'
 import { searchIndexQuery, type DexEntry } from '@/api/queries/search-index'
 import { matchDex } from '@/lib/dex/match'
 import { dexNo, humanize } from '@/lib/format'
+import { matchNav, type NavItem } from '@/lib/nav'
 import { onOpenCommandPalette } from '@/lib/palette'
+
+/** A section to jump to, or a Pokémon to open. */
+type Result =
+  | { kind: 'section'; id: string; item: NavItem }
+  | { kind: 'pokemon'; id: string; entry: DexEntry }
 
 export function CommandPalette() {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -16,7 +22,17 @@ export function CommandPalette() {
   const [enabled, setEnabled] = useState(false)
   const { data: index } = useQuery({ ...searchIndexQuery, enabled })
 
-  const results = useMemo(() => matchDex(index ?? [], query), [index, query])
+  const results = useMemo<Result[]>(
+    () => [
+      ...matchNav(query).map((item) => ({ kind: 'section' as const, id: `nav:${item.to}`, item })),
+      ...matchDex(index ?? [], query).map((entry) => ({
+        kind: 'pokemon' as const,
+        id: `dex:${entry.id}`,
+        entry,
+      })),
+    ],
+    [index, query],
+  )
 
   useEffect(() => {
     const toggle = () => {
@@ -38,11 +54,12 @@ export function CommandPalette() {
     }
   }, [])
 
-  function go(entry: DexEntry | undefined) {
-    if (!entry) return
+  function go(result: Result | undefined) {
+    if (!result) return
     dialogRef.current?.close()
     setQuery('')
-    void navigate({ to: '/pokemon/$name', params: { name: entry.name } })
+    if (result.kind === 'section') void navigate({ to: result.item.to })
+    else void navigate({ to: '/pokemon/$name', params: { name: result.entry.name } })
   }
 
   return (
@@ -62,7 +79,7 @@ export function CommandPalette() {
         aria-activedescendant={results[active] ? `palette-${results[active].id}` : undefined}
         autoFocus
         value={query}
-        placeholder="Search Pokémon…"
+        placeholder="Search Pokémon and sections…"
         onChange={(event) => {
           setQuery(event.target.value)
           setActive(0)
@@ -99,22 +116,31 @@ export function CommandPalette() {
             {index ? 'Nothing matches.' : 'Loading the dex…'}
           </li>
         ) : (
-          results.map((entry, position) => (
+          results.map((result, position) => (
             <li
-              key={entry.id}
-              id={`palette-${entry.id}`}
+              key={result.id}
+              id={`palette-${result.id}`}
               role="option"
               aria-selected={position === active}
               onMouseEnter={() => setActive(position)}
-              onClick={() => go(entry)}
+              onClick={() => go(result)}
               className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm transition-colors ${
                 position === active ? 'bg-surface-2 text-ink-hi' : ''
               }`}
             >
-              <span className="text-micro text-ink-lo" data-numeric>
-                {dexNo(entry.id)}
-              </span>
-              {humanize(entry.name)}
+              {result.kind === 'section' ? (
+                <>
+                  <span className="text-micro uppercase text-ink-lo">go</span>
+                  {result.item.label}
+                </>
+              ) : (
+                <>
+                  <span className="text-micro text-ink-lo" data-numeric>
+                    {dexNo(result.entry.id)}
+                  </span>
+                  {humanize(result.entry.name)}
+                </>
+              )}
             </li>
           ))
         )}

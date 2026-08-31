@@ -1,7 +1,15 @@
 import { Link } from '@tanstack/react-router'
 import { getPokemonSpriteUrl } from 'pokenode-ts'
+import { pokemonQuery } from '@/api/queries/pokemon'
+import { queryClient } from '@/api/query-client'
 import type { DexEntry } from '@/api/queries/search-index'
 import { humanize } from '@/lib/format'
+
+/**
+ * Touch has no hover: a finger dragged down the grid crosses every card on the
+ * way, and prefetching each one would be a hundred requests nobody asked for.
+ */
+const HOVERS = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches
 
 /**
  * Renders from a list link alone.
@@ -18,6 +26,10 @@ export function PokemonCard({ entry }: { entry: DexEntry }) {
     <Link
       to="/pokemon/$name"
       params={{ name: entry.name }}
+      // A pointer resting on a card is a reader deciding, which is time the page
+      // can spend fetching. Query's `staleTime` makes a second hover free, and
+      // the rail says which tier answered.
+      onPointerEnter={HOVERS ? () => void queryClient.prefetchQuery(pokemonQuery(entry.name)) : undefined}
       className="panel group flex flex-col items-center gap-1 p-3 transition-colors hover:border-line-strong"
     >
       <img

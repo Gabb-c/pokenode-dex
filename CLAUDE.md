@@ -32,10 +32,8 @@ listing are shell artefacts, not real).
 Single test file: `pnpm vitest run src/lib/format.test.ts`.
 One project: `pnpm vitest run --project unit` (or `dom`).
 
-**Known drift:** `README.md` documents `pnpm check` and `pnpm check:contrast`.
-Neither script exists in `package.json` — run the contrast check via `node`
-directly. `msw` is a devDependency but nothing imports it; the transport tests
-stub `fetch` instead.
+**Known drift:** `msw` is a devDependency but nothing imports it; the transport
+tests stub `fetch` instead.
 
 ## Architecture
 
@@ -67,14 +65,31 @@ should follow that shape — never call `api.*` directly from a query.
 
 All in `src/api/queries/*.ts` as `queryOptions` factories, never inline in
 components. Reference data (`generations`, `languages`, `all-types`,
-`damage-classes`, `search-index`, `move-index`, `pokedexes`, encounters,
-abilities, held items, member sets) uses `staleTime: Infinity`.
+`damage-classes`, `search-index`, `move-index`, `berry-index`, `item-index`,
+`pokedexes`, `regions`, `all-natures`, `machine-items`, encounters, abilities,
+held items, member sets) uses `staleTime: Infinity`.
 
 The move list shows a type and a class per row without resolving a single move:
 `allTypesQuery` and `allDamageClassesQuery` carry the moves that belong to them,
 and `indexMoves` (`src/lib/moves/filter.ts`) reads the grid backwards off those
 two cached queries. Resolving ~940 moves to fill the same columns is the thing
 that must not be reintroduced.
+
+**Three lists are labelled from the other side, and none of them may be
+reversed.** The move grid is the original (see above); `indexBerries`
+(`src/lib/berries/filter.ts`) reads flavour and firmness off the five
+`BerryFlavor` / `BerryFirmness` resources, and `indexItems`
+(`src/lib/items/filter.ts`) reads category and pocket off
+`allItemCategoriesQuery`. Resolving the two thousand items — or the sixty
+berries — to fill the same columns is the thing that must not be reintroduced.
+
+`/machines` is the same instinct applied to a section with no usable list:
+`machine.listMachines` is unnamed and runs to thousands of records that name no
+move, so `machineItemsQuery` reads `getItemCategoryByName('all-machines')`
+instead — one request — and a row links to the *item*, whose page resolves the
+unnamed `APIResource` links in `item.machines` into the moves they teach. There
+is deliberately no `/machines/$name`: a machine is an item, and a second page
+for it would be the item page twice.
 
 A regional Pokédex (`src/routes/games.$dex.tsx`) is one `getPokedexByName` and
 nothing else. `entriesOf` (`src/lib/dex/pokedex.ts`) joins its entries to the
@@ -89,11 +104,16 @@ so `filterDex` and `DexGrid` are reused unchanged.
 
 | | |
 |---|---|
-| `lib/battle/` | `engine`, `damage`, `moveset`, `stats` — the duel |
+| `lib/battle/` | `engine`, `damage`, `moveset`, `stats`, `status`, `items` — the duel |
+| `lib/berries/` | `filter` |
 | `lib/dex/` | `filter`, `match`, `pokedex`, `silhouette` |
+| `lib/items/` | `filter` |
+| `lib/locations/` | `encounters` |
 | `lib/moves/` | `filter`, `learnset` |
-| `lib/pokemon/` | `encounters`, `past-types` |
-| `lib/*.ts` | cross-cutting only: `format`, `generation`, `types`, `storage`, `records`, `search-params`, `palette`, `extract-declaration` |
+| `lib/pokemon/` | `encounters`, `past-types`, `breeding` |
+| `lib/team/` | `coverage` |
+| `lib/transport/` | `describe`, `waterfall` |
+| `lib/*.ts` | cross-cutting only: `format`, `generation`, `types`, `storage`, `records`, `search-params`, `palette`, `nav`, `extract-declaration` |
 | `src/hooks/` | every React-bound module, named `use-*` after its hook |
 
 A store that exists to feed a hook lives beside that hook, not in `lib` —
@@ -107,12 +127,14 @@ extracted, and the route stays the only place that knows the URL shape.
 
 ### External stores
 
-Five `useSyncExternalStore`-style singletons, all outside React:
+Six `useSyncExternalStore`-style singletons, all outside React:
 `transportLog` (`src/api/transport-log.ts`), `stats`/`resetStats`
 (`src/api/client.ts`), `l1Hits` (`src/api/query-client.ts`), theme
-(`src/hooks/use-theme.ts`), language (`src/hooks/use-language.ts`). Snapshots must keep a
+(`src/hooks/use-theme.ts`), language (`src/hooks/use-language.ts`), team
+(`src/hooks/use-team.ts`). Snapshots must keep a
 stable identity between commits — `stats()` only swaps the held tally once a
-count has actually moved. Preserve that when editing.
+count has actually moved, and `useTeam` holds the parsed array rather than
+re-reading `localStorage` per render. Preserve that when editing.
 
 The three tallies answer different questions and must not be merged: `stats()`
 is the transport's own count of network/cache/304, `TransportSnapshot.inFlight`
@@ -122,6 +144,9 @@ can never see, because they never reach it.
 
 Every `localStorage` key is prefixed `pokenode-dex:`, and every read/write is
 wrapped in try/catch (privacy modes throw outright; tests have no storage).
+`counter` holds a scalar; `record<T>` holds JSON and **validates on the way in**
+— storage is shared with every past version of the app, so a value that no
+longer matches the shape is dropped for the fallback rather than handed on.
 `src/lib/storage.ts` owns both rules and exports `PREFIX`; the transport's
 `WebStorageCache` is the one writer outside those helpers and imports it rather
 than repeating the literal.
@@ -132,8 +157,14 @@ TanStack Router, file-based. `src/routeTree.gen.ts` is **generated** — never
 edit it. The generator runs as a Vite plugin, and in `vite.config.ts` it must
 stay **first**, before the React transforms that compile its output.
 
+The twelve sections live in **one registry**, `src/lib/nav.ts`: `TopBar` renders
+it and the command palette matches against it, so a section can never become
+reachable by shortcut alone. The nav row scrolls sideways rather than wrapping —
+twelve labels fit no phone, and the shell is fixed with only `main` scrolling.
+
 Filters live in the URL as typed search params (`validateSearch` in
-`src/routes/pokemon.index.tsx`, `src/routes/moves.index.tsx`), so any view is
+`src/routes/pokemon.index.tsx`, `src/routes/moves.index.tsx`,
+`src/routes/items.index.tsx`, `src/routes/berries.index.tsx`), so any view is
 shareable. `src/routes/pokemon.$name.tsx` carries four of them (vg, learn, ver,
 gen), so every `navigate` there has to spread the current search rather than
 replace it. Every param is absent rather than empty, so an unfiltered view has a
@@ -145,8 +176,10 @@ clean URL.
 named declarations via `extractDeclaration`. Renaming an exported binding in
 `src/api/client.ts`, `src/api/query-client.ts`, `src/api/queries/search-index.ts`,
 `src/api/queries/types.ts`, `src/api/queries/moves.ts`,
-`src/api/queries/games.ts`, `src/lib/pokemon/past-types.ts`,
-`src/hooks/use-language.ts`, or `src/components/dex/PokemonCard.tsx`
+`src/api/queries/games.ts`, `src/api/queries/berries.ts`,
+`src/api/queries/locations.ts`, `src/api/queries/machines.ts`,
+`src/lib/pokemon/past-types.ts`, `src/hooks/use-language.ts`,
+`src/components/dex/Cries.tsx`, or `src/components/dex/PokemonCard.tsx`
 breaks a snippet on that page — and it
 breaks *quietly*, because `extractDeclaration` falls back to the whole file
 rather than throwing. `src/routes/-features.test.ts` is the guard: it asserts
@@ -215,6 +248,29 @@ on node. A `.test.ts` that needs a DOM belongs beside a hook, not in `lib`.
 `src/api/cache-tiers.test.ts` asserts the two-tier configuration against a
 stubbed `fetch` (ETag/304), not the real PokéAPI. Any change to the caching or
 retry configuration should be reflected there.
+
+### Sprites
+
+`getPokemonSpriteUrl` is the library's **only** URL builder, and it is Pokémon
+only. Everything else comes off a payload:
+
+- `Item.sprites.default` — the item pages and `HeldItems`.
+- `Type.sprites` — symbols by generation and game. `typeIcon`
+  (`src/lib/types.ts`) walks the two newest generations, because only those
+  publish `symbol_icon`; everything older draws the type's *name* as a picture,
+  which is a word in an image and not a fallback worth having.
+- **A berry and a machine publish no sprite at all.** Both reach one through the
+  item they are: `berry.item`, `machine.item`.
+
+Do not build an item sprite URL from a slug. It looks deterministic and is not —
+`tm01`'s sprite is `tm-normal.png`, because TM icons are keyed by the move's
+*type*, not the item. That is why `/items`, `/berries` and `/machines` show no
+icons in their lists: the sprite lives on the payload, and one payload per row is
+the fan-out those lists exist to avoid.
+
+Where a row already holds a Pokémon link, the sprite is free —
+`getPokemonSpriteUrl(resourceId(link))` costs no request, which is what
+`ItemHolders` and `AreaEncounters` do.
 
 ## Data etiquette
 

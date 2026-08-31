@@ -1,4 +1,5 @@
 import type { Move } from 'pokenode-ts'
+import { statusFrom, type Status } from '@/lib/battle/status'
 import { isBattleType, type TypeName } from '@/lib/types'
 
 export interface BattleMove {
@@ -11,6 +12,10 @@ export interface BattleMove {
   pp: number
   maxPp: number
   priority: number
+  /** The condition the move may leave behind, where this tier models it. */
+  ailment: Status | null
+  /** Percentage, as the endpoint gives it. Zero for a move that never applies one. */
+  ailmentChance: number
 }
 
 /** Four slots, as the games have always had. */
@@ -35,14 +40,21 @@ export const FALLBACK_MOVE: BattleMove = {
   pp: 10,
   maxPp: 10,
   priority: 0,
+  ailment: null,
+  ailmentChance: 0,
 }
 
 /** What a move with no PP of its own is given, as the fallback move has. */
 const DEFAULT_PP = 10
 
 /**
- * Status moves carry no power, and this tier has no effects for them to apply.
- * A type no Pokémon can be — Stellar — goes with them: the chart has no row.
+ * Status moves carry no power, and a move whose whole job is a condition has
+ * nothing else to do with a turn. What survives is the damaging moves, which
+ * may still leave a condition behind as a secondary effect — that is what
+ * `meta` carries, and what this reads off it.
+ *
+ * A type no Pokémon can be — Stellar — goes with the status moves: the chart
+ * has no row for it.
  */
 function toBattleMove(move: Move): BattleMove | undefined {
   const { power } = move
@@ -59,6 +71,8 @@ function toBattleMove(move: Move): BattleMove | undefined {
     pp,
     maxPp: pp,
     priority: move.priority,
+    ailment: statusFrom(move.meta?.ailment?.name) ?? null,
+    ailmentChance: move.meta?.ailment_chance ?? 0,
   }
 }
 

@@ -6,7 +6,7 @@ import { cached, isNotFound } from '@/api/query-client'
 import { GenerationPicker } from '@/components/dex/GenerationPicker'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { generationLabel, humanize } from '@/lib/format'
-import { isBattleType } from '@/lib/types'
+import { isBattleType, typeIcon } from '@/lib/types'
 import { compact, optionalGeneration } from '@/lib/search-params'
 
 /** Enough to browse; the dex filter is the right tool past this. */
@@ -40,10 +40,24 @@ function TypeDetail() {
   // Nothing is guessed for a type that did not exist yet: the relations are
   // missing rather than neutral, and the panel says so.
   const relations = relationsFor(type, gen)
+  const icon = typeIcon(type)
 
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        {/* Decorative: the heading beside it is the accessible name. */}
+        {icon && (
+          <img
+            src={icon}
+            alt=""
+            width={24}
+            height={24}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            className="size-6 self-center object-contain"
+          />
+        )}
         <h1 className="text-2xl tracking-tight">{humanize(type.name)}</h1>
         <TypeChip name={type.name} asLink={false} />
         <span className="text-micro text-ink-lo">

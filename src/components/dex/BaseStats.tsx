@@ -1,19 +1,6 @@
 import type { Pokemon } from 'pokenode-ts'
 import { StatBar } from '@/components/dex/StatBar'
-import { humanize } from '@/lib/format'
-
-const STAT_LABELS: Record<string, string> = {
-  hp: 'HP',
-  attack: 'Attack',
-  defense: 'Defense',
-  'special-attack': 'Sp. Atk',
-  'special-defense': 'Sp. Def',
-  speed: 'Speed',
-}
-
-function shortStat(name: string): string {
-  return STAT_LABELS[name] ?? humanize(name)
-}
+import { statLabel } from '@/lib/format'
 
 export function BaseStats({ pokemon, tint }: { pokemon: Pokemon; tint: string }) {
   const total = pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0)
@@ -25,7 +12,7 @@ export function BaseStats({ pokemon, tint }: { pokemon: Pokemon; tint: string })
         {pokemon.stats.map((stat) => (
           <StatBar
             key={stat.stat.name}
-            label={shortStat(stat.stat.name)}
+            label={statLabel(stat.stat.name)}
             value={stat.base_stat}
             tint={tint}
           />

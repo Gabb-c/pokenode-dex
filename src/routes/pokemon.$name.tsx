@@ -8,12 +8,16 @@ import { matchupsQuery } from '@/api/queries/types'
 import { cached, isNotFound } from '@/api/query-client'
 import { Abilities } from '@/components/dex/Abilities'
 import { BaseStats } from '@/components/dex/BaseStats'
+import { Breeding } from '@/components/dex/Breeding'
+import { Cries } from '@/components/dex/Cries'
 import { Encounters } from '@/components/dex/Encounters'
 import { Evolution } from '@/components/dex/Evolution'
+import { Forms } from '@/components/dex/Forms'
 import { HeldItems } from '@/components/dex/HeldItems'
 import { Learnset } from '@/components/dex/Learnset'
 import { Matchups } from '@/components/dex/Matchups'
 import { SpriteViewer } from '@/components/dex/SpriteViewer'
+import { StatCalculator } from '@/components/dex/StatCalculator'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { Vitals } from '@/components/dex/Vitals'
 import { DetailHeader } from '@/components/ui/DetailHeader'
@@ -125,6 +129,9 @@ function PokemonDetail() {
           <SpriteViewer id={pokemon.id} name={displayName} tint={tint} />
           <div className="order-3 flex min-w-0 flex-col gap-4 lg:order-none lg:contents">
             <Vitals pokemon={pokemon} species={species} />
+            <Cries pokemon={pokemon} />
+            <Breeding species={species} />
+            <Forms species={species} current={pokemon.name} />
             {pokemon.held_items.length > 0 && (
               <Suspense fallback={<Skeleton label="Held items" />}>
                 <HeldItems pokemon={pokemon} />
@@ -141,6 +148,9 @@ function PokemonDetail() {
             </div>
           )}
           <BaseStats pokemon={pokemon} tint={tint} />
+          <Suspense fallback={<Skeleton label="Stats when raised" lines={6} />}>
+            <StatCalculator pokemon={pokemon} tint={tint} />
+          </Suspense>
           <Abilities pokemon={pokemon} />
           <Matchups
             pokemon={pokemon}

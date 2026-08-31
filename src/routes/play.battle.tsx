@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { battleMovesQuery } from '@/api/queries/battle'
+import { battleItemQuery, battleMovesQuery } from '@/api/queries/battle'
 import { pokemonQuery } from '@/api/queries/pokemon'
 import { searchIndexQuery, type DexEntry } from '@/api/queries/search-index'
 import { matchupsQuery } from '@/api/queries/types'
@@ -18,6 +18,7 @@ import {
   type BattleState,
   type Side,
 } from '@/lib/battle/engine'
+import type { Status } from '@/lib/battle/status'
 import { battleWins } from '@/lib/records'
 import { humanize } from '@/lib/format'
 import { pickAnswer, playablePool } from '@/lib/dex/silhouette'
@@ -138,10 +139,22 @@ function shownAt(state: BattleState, events: readonly BattleEvent[], step: numbe
   let player = state.player
   let foe = state.foe
 
+  const take = (side: Side, amount: number) => {
+    if (side === 'player') player = { ...player, hp: Math.max(0, player.hp - amount) }
+    else foe = { ...foe, hp: Math.max(0, foe.hp - amount) }
+  }
+
   for (const event of events.slice(0, step)) {
-    if (event.kind !== 'hit') continue
-    if (event.side === 'player') foe = { ...foe, hp: Math.max(0, foe.hp - event.damage) }
-    else player = { ...player, hp: Math.max(0, player.hp - event.damage) }
+    // A hit names the attacker; everything that moves a bar names the side it
+    // happens to.
+    if (event.kind === 'hit') take(event.side === 'player' ? 'foe' : 'player', event.damage)
+    else if (event.kind === 'residual') take(event.side, event.damage)
+    else if (event.kind === 'heal') take(event.side, -event.amount)
+    else if (event.kind === 'afflicted' || event.kind === 'cured' || event.kind === 'blocked') {
+      const next = event.kind === 'afflicted' ? event.status : null
+      if (event.side === 'player') player = { ...player, status: next }
+      else foe = { ...foe, status: next }
+    }
   }
 
   return { player, foe }
@@ -167,7 +180,41 @@ function describe(event: BattleEvent, names: Record<Side, string>): string {
     }
     case 'faint':
       return `${names[event.side]} fainted!`
+    case 'blocked':
+      return `${names[event.side]} is ${BLOCKED[event.status]}!`
+    case 'afflicted':
+      return `${names[event.side]} ${AFFLICTED[event.status]}!`
+    case 'cured':
+      return `${names[event.side]} ${CURED[event.status]}!`
+    case 'residual':
+      return `${names[event.side]} lost ${event.damage} HP to its ${event.status}.`
+    case 'heal':
+      return `${names[event.side]} restored ${event.amount} HP.`
   }
+}
+
+const BLOCKED: Record<Status, string> = {
+  sleep: 'fast asleep',
+  freeze: 'frozen solid',
+  paralysis: 'paralysed and cannot move',
+  burn: 'burned',
+  poison: 'poisoned',
+}
+
+const AFFLICTED: Record<Status, string> = {
+  burn: 'was burned',
+  poison: 'was poisoned',
+  paralysis: 'was paralysed',
+  sleep: 'fell asleep',
+  freeze: 'was frozen solid',
+}
+
+const CURED: Record<Status, string> = {
+  sleep: 'woke up',
+  freeze: 'thawed out',
+  paralysis: 'shook off the paralysis',
+  burn: 'shook off the burn',
+  poison: 'shook off the poison',
 }
 
 interface BoutProps {
@@ -183,20 +230,28 @@ function Bout({ me, foe, onRematch }: BoutProps) {
   const [{ data: minePokemon }, { data: foePokemon }] = useSuspenseQueries({
     queries: [pokemonQuery(me), pokemonQuery(foe)],
   })
-  const [{ data: mineChart }, { data: foeChart }, { data: mineMoves }, { data: foeMoves }] =
-    useSuspenseQueries({
-      queries: [
-        matchupsQuery(minePokemon),
-        matchupsQuery(foePokemon),
-        battleMovesQuery(minePokemon, LEVEL),
-        battleMovesQuery(foePokemon, LEVEL),
-      ],
-    })
+  const [
+    { data: mineChart },
+    { data: foeChart },
+    { data: mineMoves },
+    { data: foeMoves },
+    { data: mineItem },
+    { data: foeItem },
+  ] = useSuspenseQueries({
+    queries: [
+      matchupsQuery(minePokemon),
+      matchupsQuery(foePokemon),
+      battleMovesQuery(minePokemon, LEVEL),
+      battleMovesQuery(foePokemon, LEVEL),
+      battleItemQuery(minePokemon),
+      battleItemQuery(foePokemon),
+    ],
+  })
 
   const [round, setRound] = useState<Round>(() => ({
     state: openBattle(
-      fighterFrom(minePokemon, mineMoves, mineChart, LEVEL),
-      fighterFrom(foePokemon, foeMoves, foeChart, LEVEL),
+      fighterFrom(minePokemon, mineMoves, mineChart, LEVEL, mineItem),
+      fighterFrom(foePokemon, foeMoves, foeChart, LEVEL, foeItem),
     ),
     pending: null,
     events: [],

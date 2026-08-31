@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { Pokemon } from 'pokenode-ts'
 import { scoped } from '../client'
+import { heldItem, type HeldItem } from '@/lib/battle/items'
 import { battleMoveset, type BattleMove } from '@/lib/battle/moveset'
 import { defaultVersionGroup, learnsetEntries } from '@/lib/moves/learnset'
 
@@ -39,3 +40,32 @@ export const battleMovesQuery = (pokemon: Pokemon, level: number) =>
       return battleMoveset(moves)
     },
   })
+
+/**
+ * What a fighter is carrying.
+ *
+ * A Pokémon lists the items it is *found* holding in the wild, with a rarity
+ * each; the commonest is the one a duel gives it. Most hold nothing, and an
+ * item this tier has no rule for is left off rather than guessed at — which is
+ * what `heldItem` decides.
+ */
+export const battleItemQuery = (pokemon: Pokemon) =>
+  queryOptions({
+    queryKey: ['battle-item', pokemon.name],
+    staleTime: Infinity,
+    queryFn: async ({ signal }): Promise<HeldItem | null> => {
+      const commonest = [...pokemon.held_items].sort(
+        (a, b) => rarityOf(b) - rarityOf(a),
+      )[0]
+      // Not `undefined`: Query rejects that as a missing result.
+      if (!commonest) return null
+
+      const item = await scoped(signal).resolve(commonest.item)
+      return heldItem(item.name) ?? null
+    },
+  })
+
+/** The likeliest a hold gets across the versions the endpoint lists. */
+function rarityOf(held: Pokemon['held_items'][number]): number {
+  return held.version_details.reduce((highest, detail) => Math.max(highest, detail.rarity), 0)
+}

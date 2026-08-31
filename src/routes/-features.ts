@@ -14,6 +14,10 @@ import moveQueriesSource from '@/api/queries/moves.ts?raw'
 import pastTypesSource from '@/lib/pokemon/past-types.ts?raw'
 import languageSource from '@/hooks/use-language.ts?raw'
 import cardSource from '@/components/dex/PokemonCard.tsx?raw'
+import berryQueriesSource from '@/api/queries/berries.ts?raw'
+import locationQueriesSource from '@/api/queries/locations.ts?raw'
+import machineQueriesSource from '@/api/queries/machines.ts?raw'
+import criesSource from '@/components/dex/Cries.tsx?raw'
 
 export interface Feature {
   title: string
@@ -92,6 +96,38 @@ export const FEATURES: Feature[] = [
       'localize picks a single entry and stops. Flavour text is published once per version group, so the question is which of the translated ones — and that needs them all. localizeAll narrows to the language and leaves the choice where it belongs.',
     source: languageSource,
     extract: 'export function useLatestFlavor',
+  },
+  {
+    title: 'A grid filled from the other side',
+    nav: 'Berries',
+    blurb:
+      'The berry list carries a name and nothing else, so labelling sixty rows with a flavour from the berry side is sixty requests. The five flavour resources name the berries that taste of them, and reading the pairing from there costs five. The move list makes the same trade with its types.',
+    source: berryQueriesSource,
+    extract: 'export const berryFlavorsQuery',
+  },
+  {
+    title: 'A link with no name on it',
+    nav: 'Unnamed links',
+    blurb:
+      'A machine has no slug — the API points at its records by URL alone, as an APIResource rather than a NamedAPIResource. resolveAll follows a list of those exactly as it follows named ones, and the moves come back typed with nothing hand-written in between.',
+    source: machineQueriesSource,
+    extract: 'export const itemMachinesQuery',
+  },
+  {
+    title: 'The encounter table, from the other end',
+    nav: 'Locations',
+    blurb:
+      'A Pokémon page asks where one species lives. A location knows what lives in it, which is the same data approached from the other side: the region names its locations, a location names its areas, and each area carries every encounter in it.',
+    source: locationQueriesSource,
+    extract: 'export const locationAreasQuery',
+  },
+  {
+    title: 'A field that was already there',
+    nav: 'Cries',
+    blurb:
+      'No request at all. Every Pokémon payload carries the URLs of its cries, so the button is a field of a resource the page already holds — and the type says both takes are strings while the endpoint sends null for the older one, which is why it is checked rather than trusted.',
+    source: criesSource,
+    extract: 'export function Cries',
   },
   {
     title: 'Sprites without a request',

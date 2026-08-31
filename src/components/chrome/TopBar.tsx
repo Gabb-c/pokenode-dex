@@ -1,16 +1,8 @@
 import { Link } from '@tanstack/react-router'
+import { NAV } from '@/lib/nav'
 import { openCommandPalette } from '@/lib/palette'
 import { LanguagePicker } from './LanguagePicker'
 import { ThemeToggle } from './ThemeToggle'
-
-const NAV = [
-  { to: '/pokemon', label: 'Dex' },
-  { to: '/moves', label: 'Moves' },
-  { to: '/types', label: 'Types' },
-  { to: '/games', label: 'Games' },
-  { to: '/play', label: 'Play' },
-  { to: '/about', label: 'How it works' },
-] as const
 
 export function TopBar() {
   return (
@@ -22,12 +14,14 @@ export function TopBar() {
         </Link>
 
         {/*
-         * The six links are ~420px of unbreakable labels — wider than a 360px
-         * phone once the logo has taken its share. `basis-full` gives them a row
-         * of their own below `sm`, and `flex-wrap` is what stops the last one
-         * pushing the bar off the side of the screen at the narrowest widths.
+         * Twelve links are ~800px of unbreakable labels, which fits no phone and
+         * not much of a laptop either. Wrapping them costs three rows on a
+         * phone, and the shell is fixed with only `main` scrolling — so the bar
+         * would take the reading area rather than give it up. It scrolls
+         * sideways instead, the same trade the status rail makes at the foot of
+         * the page. `basis-full` still gives the row its own line below `sm`.
          */}
-        <nav className="order-last flex basis-full flex-wrap items-center gap-1 sm:order-none sm:basis-auto sm:flex-nowrap">
+        <nav className="order-last flex min-w-0 basis-full items-center gap-1 overflow-x-auto overscroll-x-contain sm:order-none sm:basis-auto">
           {NAV.map(({ to, label }) => (
             <Link
               key={to}

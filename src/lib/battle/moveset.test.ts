@@ -13,6 +13,7 @@ interface Spec {
   accuracy?: number | null
   pp?: number
   priority?: number
+  meta?: { ailment: { name: string; url: string }; ailment_chance: number }
 }
 
 function move(name: string, spec: Spec = {}): Move {
@@ -23,6 +24,7 @@ function move(name: string, spec: Spec = {}): Move {
     accuracy = 100,
     pp = 20,
     priority = 0,
+    meta,
   } = spec
 
   return {
@@ -33,6 +35,7 @@ function move(name: string, spec: Spec = {}): Move {
     priority,
     type: link(type),
     damage_class: link(damageClass),
+    meta,
   } as Move
 }
 
@@ -97,6 +100,26 @@ describe('battleMoveset', () => {
       pp: 30,
       maxPp: 30,
       priority: 1,
+      ailment: null,
+      ailmentChance: 0,
     })
+  })
+
+  it('carries the condition a damaging move may leave behind', () => {
+    const [ember] = battleMoveset([
+      move('ember', {
+        meta: { ailment: { name: 'burn', url: '' }, ailment_chance: 10 },
+      }),
+    ])
+
+    expect(ember).toMatchObject({ ailment: 'burn', ailmentChance: 10 })
+  })
+
+  it('leaves an ailment this tier does not model absent', () => {
+    const [bind] = battleMoveset([
+      move('bind', { meta: { ailment: { name: 'trap', url: '' }, ailment_chance: 100 } }),
+    ])
+
+    expect(bind.ailment).toBeNull()
   })
 })

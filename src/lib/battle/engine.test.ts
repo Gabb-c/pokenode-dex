@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { chooseFoeMove, fighterFrom, openBattle, resolveTurn, type Fighter } from './engine'
+import { heldItem, type HeldItem } from './items'
 import type { BattleMove } from './moveset'
+import type { Status } from './status'
 import type { Matchups, TypeName } from '@/lib/types'
 
 /** No crit, a mid roll, and every hundred-accuracy move connects. */
@@ -16,6 +18,8 @@ function move(name: string, overrides: Partial<BattleMove> = {}): BattleMove {
     pp: 20,
     maxPp: 20,
     priority: 0,
+    ailment: null,
+    ailmentChance: 0,
     ...overrides,
   }
 }
@@ -28,6 +32,9 @@ interface Build {
   types?: TypeName[]
   moves?: BattleMove[]
   chart?: Matchups
+  status?: Status | null
+  sleepTurns?: number
+  item?: HeldItem | null
 }
 
 function fighter(name: string, build: Build = {}): Fighter {
@@ -39,6 +46,9 @@ function fighter(name: string, build: Build = {}): Fighter {
     types = ['normal'],
     moves = [move('tackle')],
     chart = {},
+    status = null,
+    sleepTurns = 0,
+    item = null,
   } = build
 
   return {
@@ -50,6 +60,9 @@ function fighter(name: string, build: Build = {}): Fighter {
     hp,
     moves,
     chart,
+    status,
+    sleepTurns,
+    item,
   }
 }
 
@@ -193,5 +206,103 @@ describe('resolveTurn', () => {
     expect(state.foe.hp).toBe(state.foe.stats.hp)
     expect(state.player.moves[0].pp).toBe(20)
     expect(state.turn).toBe(1)
+  })
+})
+
+describe('resolveTurn under a condition', () => {
+  it('keeps a sleeping side down without spending its PP', () => {
+    const state = openBattle(
+      fighter('me', { status: 'sleep', sleepTurns: 3, speed: 200 }),
+      fighter('foe'),
+    )
+    const { next, events } = resolveTurn(state, 0, STEADY)
+
+    expect(events[0]).toMatchObject({ kind: 'blocked', side: 'player', status: 'sleep' })
+    expect(next.player.moves[0].pp).toBe(20)
+  })
+
+  it('wakes on the last turn and moves the same turn', () => {
+    const state = openBattle(
+      fighter('me', { status: 'sleep', sleepTurns: 1, speed: 200 }),
+      fighter('foe'),
+    )
+    const { events } = resolveTurn(state, 0, STEADY)
+
+    expect(kinds(events).slice(0, 2)).toEqual(['cured', 'use'])
+  })
+
+  it('lets paralysis lose the turn order', () => {
+    const state = openBattle(
+      fighter('me', { speed: 100, status: 'paralysis' }),
+      fighter('foe', { speed: 60 }),
+    )
+    // 0.9 clears the paralysis check, so this is speed alone deciding.
+    expect(actors(resolveTurn(state, 0, () => 0.9).events)[0]).toBe('foe')
+  })
+
+  it('bites at the end of the turn and says which condition did it', () => {
+    const state = openBattle(fighter('me', { status: 'poison' }), fighter('foe'))
+    const { next, events } = resolveTurn(state, 0, STEADY)
+
+    const bite = events.find((event) => event.kind === 'residual')
+    expect(bite).toMatchObject({ side: 'player', status: 'poison', damage: 25 })
+    expect(next.player.hp).toBeLessThan(200)
+  })
+
+  it('leaves a condition off a target that already has one', () => {
+    const state = openBattle(
+      fighter('me', { moves: [move('ember', { ailment: 'burn', ailmentChance: 100 })] }),
+      fighter('foe', { status: 'poison' }),
+    )
+    const { next, events } = resolveTurn(state, 0, STEADY)
+
+    expect(events.some((event) => event.kind === 'afflicted')).toBe(false)
+    expect(next.foe.status).toBe('poison')
+  })
+
+  it('lands a condition when the draw allows it', () => {
+    const state = openBattle(
+      fighter('me', {
+        speed: 200,
+        moves: [move('ember', { ailment: 'burn', ailmentChance: 100 })],
+      }),
+      fighter('foe'),
+    )
+    const { next, events } = resolveTurn(state, 0, STEADY)
+
+    expect(events.some((event) => event.kind === 'afflicted')).toBe(true)
+    expect(next.foe.status).toBe('burn')
+  })
+})
+
+describe('resolveTurn with a held item', () => {
+  it('restores at the end of the turn once something has been taken off', () => {
+    const state = openBattle(
+      fighter('me', { item: heldItem('leftovers') ?? null }),
+      fighter('foe'),
+    )
+    const { events } = resolveTurn(state, 0, STEADY)
+
+    expect(events.some((event) => event.kind === 'heal')).toBe(true)
+  })
+
+  it('gives nothing back at full health', () => {
+    const state = openBattle(
+      fighter('me', { speed: 200, item: heldItem('leftovers') ?? null }),
+      fighter('foe', { moves: [move('tackle', { accuracy: 0 })] }),
+    )
+    const { events } = resolveTurn(state, 0, STEADY)
+
+    expect(events.some((event) => event.kind === 'heal')).toBe(false)
+  })
+
+  it('skips the whole end of the turn once someone has dropped', () => {
+    const state = openBattle(
+      fighter('me', { speed: 200, status: 'poison', attack: 5000 }),
+      fighter('foe', { hp: 1 }),
+    )
+    const { events } = resolveTurn(state, 0, STEADY)
+
+    expect(events.some((event) => event.kind === 'residual')).toBe(false)
   })
 })

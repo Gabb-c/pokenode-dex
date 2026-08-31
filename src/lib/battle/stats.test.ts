@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Pokemon } from 'pokenode-ts'
+import type { Nature, Pokemon } from 'pokenode-ts'
 import { battleStats } from './stats'
 
 function link(name: string) {
@@ -23,6 +23,21 @@ const PIKACHU = pokemon({
   'special-defense': 50,
   speed: 90,
 })
+
+const GARCHOMP = pokemon({
+  hp: 108,
+  attack: 130,
+  defense: 95,
+  'special-attack': 80,
+  'special-defense': 85,
+  speed: 102,
+})
+
+/** Adamant: attack up, special attack down. */
+const NATURE = {
+  increased_stat: link('attack'),
+  decreased_stat: link('special-attack'),
+} as unknown as Nature
 
 describe('battleStats', () => {
   it('matches the games at level 50 with perfect IVs and no EVs', () => {
@@ -55,5 +70,32 @@ describe('battleStats', () => {
     const odd = pokemon({ hp: 35, accuracy: 100 })
 
     expect(battleStats(odd, 50).hp).toBe(110)
+  })
+})
+
+describe('battleStats with a spread', () => {
+  it('raises the nature\'s stat by a tenth and drops the other', () => {
+    const neutral = battleStats(GARCHOMP, 50)
+    const adamant = battleStats(GARCHOMP, 50, { nature: NATURE })
+    expect(adamant.attack).toBe(Math.floor(neutral.attack * 1.1))
+    expect(adamant.specialAttack).toBe(Math.floor(neutral.specialAttack * 0.9))
+  })
+
+  it('leaves HP alone, which no nature has ever touched', () => {
+    expect(battleStats(GARCHOMP, 50, { nature: NATURE }).hp).toBe(battleStats(GARCHOMP, 50).hp)
+  })
+
+  it('counts four EVs as a point', () => {
+    const trained = battleStats(GARCHOMP, 100, { evs: { attack: 252 } })
+    expect(trained.attack - battleStats(GARCHOMP, 100).attack).toBe(63)
+  })
+
+  it('takes an IV floor as readily as the perfect default', () => {
+    expect(battleStats(GARCHOMP, 50, { ivs: 0 }).speed).toBeLessThan(battleStats(GARCHOMP, 50).speed)
+  })
+
+  it('treats a neutral nature as no nature at all', () => {
+    const neutral = { increased_stat: null, decreased_stat: null } as unknown as Nature
+    expect(battleStats(GARCHOMP, 50, { nature: neutral })).toEqual(battleStats(GARCHOMP, 50))
   })
 })

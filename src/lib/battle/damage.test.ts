@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Fighter } from './engine'
 import type { BattleMove } from './moveset'
+import { heldItem } from './items'
 import { damageOf, effectivenessOf, landsHit } from './damage'
 import type { Matchups, TypeName } from '@/lib/types'
 
@@ -19,11 +20,18 @@ function move(overrides: Partial<BattleMove> = {}): BattleMove {
     pp: 25,
     maxPp: 25,
     priority: 0,
+    ailment: null,
+    ailmentChance: 0,
     ...overrides,
   }
 }
 
-function fighter(types: TypeName[], stats: Partial<Fighter['stats']>, chart: Matchups): Fighter {
+function fighter(
+  types: TypeName[],
+  stats: Partial<Fighter['stats']>,
+  chart: Matchups,
+  extra: Partial<Fighter> = {},
+): Fighter {
   return {
     id: 1,
     name: 'test',
@@ -41,6 +49,10 @@ function fighter(types: TypeName[], stats: Partial<Fighter['stats']>, chart: Mat
     hp: 200,
     moves: [],
     chart,
+    status: null,
+    sleepTurns: 0,
+    item: null,
+    ...extra,
   }
 }
 
@@ -122,5 +134,37 @@ describe('damageOf', () => {
     const strike = damageOf(feeble, wall, move({ type: 'normal', power: 10 }), draws(0.9, 0))
 
     expect(strike.damage).toBe(1)
+  })
+})
+
+describe('damageOf under a condition or a held item', () => {
+  it('halves a physical hit from a burned attacker', () => {
+    const burned = fighter(['fire'], {}, {}, { status: 'burn' })
+    const plain = damageOf(ATTACKER, WEAK_TO_FIRE, move(), draws(1, 0))
+    const scorched = damageOf(burned, WEAK_TO_FIRE, move(), draws(1, 0))
+    expect(scorched.damage).toBe(Math.floor(plain.damage * 0.5))
+  })
+
+  it('leaves a special hit alone, which a burn has never touched', () => {
+    const burned = fighter(['fire'], {}, {}, { status: 'burn' })
+    const special = move({ damageClass: 'special' })
+    expect(damageOf(burned, WEAK_TO_FIRE, special, draws(1, 0)).damage).toBe(
+      damageOf(ATTACKER, WEAK_TO_FIRE, special, draws(1, 0)).damage,
+    )
+  })
+
+  it('applies a held item that boosts every move', () => {
+    const holder = fighter(['fire'], {}, {}, { item: heldItem('life-orb') ?? null })
+    const plain = damageOf(ATTACKER, WEAK_TO_FIRE, move(), draws(1, 0))
+    expect(damageOf(holder, WEAK_TO_FIRE, move(), draws(1, 0)).damage).toBe(
+      Math.floor(plain.damage * 1.3),
+    )
+  })
+
+  it('leaves a type-boosting item out of a move of another type', () => {
+    const holder = fighter(['fire'], {}, {}, { item: heldItem('mystic-water') ?? null })
+    expect(damageOf(holder, WEAK_TO_FIRE, move(), draws(1, 0)).damage).toBe(
+      damageOf(ATTACKER, WEAK_TO_FIRE, move(), draws(1, 0)).damage,
+    )
   })
 })

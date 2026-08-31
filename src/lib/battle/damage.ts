@@ -1,5 +1,7 @@
 import type { BattleMove } from '@/lib/battle/moveset'
 import type { Fighter } from '@/lib/battle/engine'
+import { itemMultiplier } from '@/lib/battle/items'
+import { burnPenalty } from '@/lib/battle/status'
 
 /** Same type as the attacker: the oldest bonus in the games. */
 const STAB = 1.5
@@ -41,6 +43,10 @@ export function landsHit(move: BattleMove, random: () => number = Math.random): 
  * Draws in a fixed order — crit, then the roll — so a test pinning `random`
  * knows which value it is pinning. An immune matchup returns before either,
  * because zero is the one result the `max(1, …)` floor must not rescue.
+ *
+ * The attacker's burn and its held item fold in beside STAB: both multiply the
+ * result rather than the base power, which is where the games apply them and
+ * what keeps the crit and the roll reading the same as before.
  */
 export function damageOf(
   attacker: Fighter,
@@ -62,7 +68,11 @@ export function damageOf(
   const core = Math.floor(Math.floor((levelFactor * move.power * offence) / defence) / 50) + 2
 
   const stab = attacker.types.includes(move.type) ? STAB : 1
-  const damage = Math.floor(core * (critical ? CRIT : 1) * stab * effectiveness * roll)
+  const burn = burnPenalty(attacker.status, physical)
+  const item = itemMultiplier(attacker.item, move)
+  const damage = Math.floor(
+    core * (critical ? CRIT : 1) * stab * effectiveness * roll * burn * item,
+  )
 
   // A hit that connects always takes something off.
   return { damage: Math.max(1, damage), effectiveness, critical }

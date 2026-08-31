@@ -8,10 +8,12 @@ interface StatBarProps {
   value: number
   /** The Pokémon's primary type, so the bar reads as belonging to it. */
   tint: string
+  /** The top of the scale. Base stats keep the default; raised ones are larger. */
+  max?: number
 }
 
-export function StatBar({ label, value, tint }: StatBarProps) {
-  const style = { '--t': tint, '--fill': `${(value / MAX_BASE_STAT) * 100}%` } as CSSProperties
+export function StatBar({ label, value, tint, max = MAX_BASE_STAT }: StatBarProps) {
+  const style = { '--t': tint, '--fill': `${Math.min(100, (value / max) * 100)}%` } as CSSProperties
 
   return (
     <div className="grid grid-cols-[4.5rem_1fr_2.5rem] items-center gap-3" style={style}>
@@ -21,7 +23,7 @@ export function StatBar({ label, value, tint }: StatBarProps) {
         aria-label={label}
         aria-valuenow={value}
         aria-valuemin={0}
-        aria-valuemax={MAX_BASE_STAT}
+        aria-valuemax={max}
         className="h-1.5 overflow-hidden rounded-full bg-surface-2"
       >
         <div

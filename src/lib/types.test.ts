@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BATTLE_TYPES, notableMatchups, type Matchups } from './types'
+import type { Type } from 'pokenode-ts'
+import { BATTLE_TYPES, notableMatchups, typeIcon, type Matchups } from './types'
 
 /** A neutral chart with only the named cells moved off 1. */
 function chart(cells: Partial<Matchups>): Matchups {
@@ -37,5 +38,54 @@ describe('notableMatchups', () => {
     const { weaknesses } = notableMatchups({ ...chart({ dark: 2 }), stellar: 2 } as Matchups)
 
     expect(weaknesses).toEqual(['dark'])
+  })
+})
+
+describe('typeIcon', () => {
+  function type(sprites: Record<string, Record<string, { symbol_icon: string | null }>>): Type {
+    return { name: 'fire', sprites } as unknown as Type
+  }
+
+  it('takes the symbol from the newest generation that drew one', () => {
+    const icon = typeIcon(
+      type({
+        'generation-viii': { 'sword-shield': { symbol_icon: 'old.png' } },
+        'generation-ix': { 'scarlet-violet': { symbol_icon: 'new.png' } },
+      }),
+    )
+    expect(icon).toBe('new.png')
+  })
+
+  it('falls back a generation when the newest published none', () => {
+    const icon = typeIcon(
+      type({
+        'generation-viii': { 'sword-shield': { symbol_icon: 'old.png' } },
+        'generation-ix': { 'scarlet-violet': { symbol_icon: null } },
+      }),
+    )
+    expect(icon).toBe('old.png')
+  })
+
+  it('tries every game of a generation before giving up on it', () => {
+    const icon = typeIcon(
+      type({
+        'generation-viii': {
+          'brilliant-diamond-shining-pearl': { symbol_icon: null },
+          'sword-shield': { symbol_icon: 'found.png' },
+        },
+        'generation-ix': { 'scarlet-violet': { symbol_icon: null } },
+      }),
+    )
+    expect(icon).toBe('found.png')
+  })
+
+  it('answers nothing for a type no game drew a symbol for', () => {
+    const icon = typeIcon(
+      type({
+        'generation-viii': { 'sword-shield': { symbol_icon: null } },
+        'generation-ix': { 'scarlet-violet': { symbol_icon: null } },
+      }),
+    )
+    expect(icon).toBeUndefined()
   })
 })

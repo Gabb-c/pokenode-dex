@@ -7,7 +7,7 @@ import { GenerationPicker } from '@/components/dex/GenerationPicker'
 import { TypeChip } from '@/components/dex/TypeChip'
 import { Loading } from '@/components/ui/Loading'
 import { effectiveness, generationLabel } from '@/lib/format'
-import { BATTLE_TYPES, typeVar, type TypeName } from '@/lib/types'
+import { BATTLE_TYPES, typeIcon, typeVar, type TypeName } from '@/lib/types'
 import { compact, optionalGeneration } from '@/lib/search-params'
 
 interface ChartSearch {
@@ -45,9 +45,14 @@ function TypeChart() {
   // `relationsFor` returns nothing for a type that did not exist yet, and a
   // neutral row would be a confidently wrong answer — so it leaves both axes.
   const charts = new Map<string, TypeRelations>()
+  // The symbols come off the same payload as the relations, so the column
+  // headings cost no request of their own.
+  const icons = new Map<string, string>()
   for (const type of types) {
     const relations = relationsFor(type, gen)
     if (relations) charts.set(type.name, relations)
+    const icon = typeIcon(type)
+    if (icon) icons.set(type.name, icon)
   }
   const axis = BATTLE_TYPES.filter((name) => charts.has(name))
 
@@ -96,14 +101,30 @@ function TypeChart() {
               <th scope="col" className="sticky left-0 z-10 bg-surface-1 p-2 text-left">
                 Atk ╲ Def
               </th>
-              {/* Set vertically rather than abbreviated: a column is identified by its name. */}
+              {/* Set vertically rather than abbreviated: a column is identified by
+                  its name. The symbol above it is a second channel, never the
+                  only one — it carries `alt=""` for exactly that reason. */}
               {axis.map((name) => (
-                <th key={name} scope="col" className="h-24 p-1 align-bottom">
-                  <span
-                    className="mx-auto block w-4 rotate-180 uppercase [writing-mode:vertical-rl]"
-                    style={{ color: typeVar(name) }}
-                  >
-                    {name}
+                <th key={name} scope="col" className="h-28 p-1 align-bottom">
+                  <span className="flex flex-col items-center gap-1">
+                    {icons.has(name) && (
+                      <img
+                        src={icons.get(name)}
+                        alt=""
+                        width={16}
+                        height={16}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className="size-4 shrink-0 object-contain"
+                      />
+                    )}
+                    <span
+                      className="block w-4 rotate-180 uppercase [writing-mode:vertical-rl]"
+                      style={{ color: typeVar(name) }}
+                    >
+                      {name}
+                    </span>
                   </span>
                 </th>
               ))}

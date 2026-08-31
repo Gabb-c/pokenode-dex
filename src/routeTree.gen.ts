@@ -11,8 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as BerriesIndexRouteImport } from './routes/berries.index'
+import { Route as BerriesNameRouteImport } from './routes/berries.$name'
+import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesDexRouteImport } from './routes/games.$dex'
+import { Route as ItemsIndexRouteImport } from './routes/items.index'
+import { Route as ItemsNameRouteImport } from './routes/items.$name'
+import { Route as LocationsIndexRouteImport } from './routes/locations.index'
+import { Route as LocationsRegionRouteImport } from './routes/locations.$region'
+import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MovesIndexRouteImport } from './routes/moves.index'
 import { Route as MovesNameRouteImport } from './routes/moves.$name'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
@@ -20,6 +28,7 @@ import { Route as PlayBattleRouteImport } from './routes/play.battle'
 import { Route as PlaySilhouetteRouteImport } from './routes/play.silhouette'
 import { Route as PokemonIndexRouteImport } from './routes/pokemon.index'
 import { Route as PokemonNameRouteImport } from './routes/pokemon.$name'
+import { Route as TeamIndexRouteImport } from './routes/team.index'
 import { Route as TypesIndexRouteImport } from './routes/types.index'
 import { Route as TypesNameRouteImport } from './routes/types.$name'
 
@@ -33,6 +42,21 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BerriesIndexRoute = BerriesIndexRouteImport.update({
+  id: '/berries/',
+  path: '/berries/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BerriesNameRoute = BerriesNameRouteImport.update({
+  id: '/berries/$name',
+  path: '/berries/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
@@ -41,6 +65,31 @@ const GamesIndexRoute = GamesIndexRouteImport.update({
 const GamesDexRoute = GamesDexRouteImport.update({
   id: '/games/$dex',
   path: '/games/$dex',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ItemsIndexRoute = ItemsIndexRouteImport.update({
+  id: '/items/',
+  path: '/items/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ItemsNameRoute = ItemsNameRouteImport.update({
+  id: '/items/$name',
+  path: '/items/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsIndexRoute = LocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsRegionRoute = LocationsRegionRouteImport.update({
+  id: '/locations/$region',
+  path: '/locations/$region',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MachinesIndexRoute = MachinesIndexRouteImport.update({
+  id: '/machines/',
+  path: '/machines/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MovesIndexRoute = MovesIndexRouteImport.update({
@@ -78,6 +127,11 @@ const PokemonNameRoute = PokemonNameRouteImport.update({
   path: '/pokemon/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamIndexRoute = TeamIndexRouteImport.update({
+  id: '/team/',
+  path: '/team/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TypesIndexRoute = TypesIndexRouteImport.update({
   id: '/types/',
   path: '/types/',
@@ -92,47 +146,74 @@ const TypesNameRoute = TypesNameRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/berries/$name': typeof BerriesNameRoute
   '/games/$dex': typeof GamesDexRoute
+  '/items/$name': typeof ItemsNameRoute
+  '/locations/$region': typeof LocationsRegionRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/berries/': typeof BerriesIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/games/': typeof GamesIndexRoute
+  '/items/': typeof ItemsIndexRoute
+  '/locations/': typeof LocationsIndexRoute
+  '/machines/': typeof MachinesIndexRoute
   '/moves/': typeof MovesIndexRoute
   '/play/': typeof PlayIndexRoute
   '/pokemon/': typeof PokemonIndexRoute
+  '/team/': typeof TeamIndexRoute
   '/types/': typeof TypesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/berries/$name': typeof BerriesNameRoute
   '/games/$dex': typeof GamesDexRoute
+  '/items/$name': typeof ItemsNameRoute
+  '/locations/$region': typeof LocationsRegionRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/berries': typeof BerriesIndexRoute
+  '/compare': typeof CompareIndexRoute
   '/games': typeof GamesIndexRoute
+  '/items': typeof ItemsIndexRoute
+  '/locations': typeof LocationsIndexRoute
+  '/machines': typeof MachinesIndexRoute
   '/moves': typeof MovesIndexRoute
   '/play': typeof PlayIndexRoute
   '/pokemon': typeof PokemonIndexRoute
+  '/team': typeof TeamIndexRoute
   '/types': typeof TypesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/berries/$name': typeof BerriesNameRoute
   '/games/$dex': typeof GamesDexRoute
+  '/items/$name': typeof ItemsNameRoute
+  '/locations/$region': typeof LocationsRegionRoute
   '/moves/$name': typeof MovesNameRoute
   '/play/battle': typeof PlayBattleRoute
   '/play/silhouette': typeof PlaySilhouetteRoute
   '/pokemon/$name': typeof PokemonNameRoute
   '/types/$name': typeof TypesNameRoute
+  '/berries/': typeof BerriesIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/games/': typeof GamesIndexRoute
+  '/items/': typeof ItemsIndexRoute
+  '/locations/': typeof LocationsIndexRoute
+  '/machines/': typeof MachinesIndexRoute
   '/moves/': typeof MovesIndexRoute
   '/play/': typeof PlayIndexRoute
   '/pokemon/': typeof PokemonIndexRoute
+  '/team/': typeof TeamIndexRoute
   '/types/': typeof TypesIndexRoute
 }
 export interface FileRouteTypes {
@@ -140,62 +221,98 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/berries/$name'
     | '/games/$dex'
+    | '/items/$name'
+    | '/locations/$region'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/berries/'
+    | '/compare/'
     | '/games/'
+    | '/items/'
+    | '/locations/'
+    | '/machines/'
     | '/moves/'
     | '/play/'
     | '/pokemon/'
+    | '/team/'
     | '/types/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/berries/$name'
     | '/games/$dex'
+    | '/items/$name'
+    | '/locations/$region'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/berries'
+    | '/compare'
     | '/games'
+    | '/items'
+    | '/locations'
+    | '/machines'
     | '/moves'
     | '/play'
     | '/pokemon'
+    | '/team'
     | '/types'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/berries/$name'
     | '/games/$dex'
+    | '/items/$name'
+    | '/locations/$region'
     | '/moves/$name'
     | '/play/battle'
     | '/play/silhouette'
     | '/pokemon/$name'
     | '/types/$name'
+    | '/berries/'
+    | '/compare/'
     | '/games/'
+    | '/items/'
+    | '/locations/'
+    | '/machines/'
     | '/moves/'
     | '/play/'
     | '/pokemon/'
+    | '/team/'
     | '/types/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BerriesNameRoute: typeof BerriesNameRoute
   GamesDexRoute: typeof GamesDexRoute
+  ItemsNameRoute: typeof ItemsNameRoute
+  LocationsRegionRoute: typeof LocationsRegionRoute
   MovesNameRoute: typeof MovesNameRoute
   PlayBattleRoute: typeof PlayBattleRoute
   PlaySilhouetteRoute: typeof PlaySilhouetteRoute
   PokemonNameRoute: typeof PokemonNameRoute
   TypesNameRoute: typeof TypesNameRoute
+  BerriesIndexRoute: typeof BerriesIndexRoute
+  CompareIndexRoute: typeof CompareIndexRoute
   GamesIndexRoute: typeof GamesIndexRoute
+  ItemsIndexRoute: typeof ItemsIndexRoute
+  LocationsIndexRoute: typeof LocationsIndexRoute
+  MachinesIndexRoute: typeof MachinesIndexRoute
   MovesIndexRoute: typeof MovesIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
   PokemonIndexRoute: typeof PokemonIndexRoute
+  TeamIndexRoute: typeof TeamIndexRoute
   TypesIndexRoute: typeof TypesIndexRoute
 }
 
@@ -215,6 +332,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/berries/': {
+      id: '/berries/'
+      path: '/berries'
+      fullPath: '/berries/'
+      preLoaderRoute: typeof BerriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/berries/$name': {
+      id: '/berries/$name'
+      path: '/berries/$name'
+      fullPath: '/berries/$name'
+      preLoaderRoute: typeof BerriesNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/': {
+      id: '/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/': {
       id: '/games/'
       path: '/games'
@@ -227,6 +365,41 @@ declare module '@tanstack/react-router' {
       path: '/games/$dex'
       fullPath: '/games/$dex'
       preLoaderRoute: typeof GamesDexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/items/': {
+      id: '/items/'
+      path: '/items'
+      fullPath: '/items/'
+      preLoaderRoute: typeof ItemsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/items/$name': {
+      id: '/items/$name'
+      path: '/items/$name'
+      fullPath: '/items/$name'
+      preLoaderRoute: typeof ItemsNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/': {
+      id: '/locations/'
+      path: '/locations'
+      fullPath: '/locations/'
+      preLoaderRoute: typeof LocationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/$region': {
+      id: '/locations/$region'
+      path: '/locations/$region'
+      fullPath: '/locations/$region'
+      preLoaderRoute: typeof LocationsRegionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/machines/': {
+      id: '/machines/'
+      path: '/machines'
+      fullPath: '/machines/'
+      preLoaderRoute: typeof MachinesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moves/': {
@@ -278,6 +451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PokemonNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team/': {
+      id: '/team/'
+      path: '/team'
+      fullPath: '/team/'
+      preLoaderRoute: typeof TeamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/types/': {
       id: '/types/'
       path: '/types'
@@ -298,16 +478,25 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BerriesNameRoute: BerriesNameRoute,
   GamesDexRoute: GamesDexRoute,
+  ItemsNameRoute: ItemsNameRoute,
+  LocationsRegionRoute: LocationsRegionRoute,
   MovesNameRoute: MovesNameRoute,
   PlayBattleRoute: PlayBattleRoute,
   PlaySilhouetteRoute: PlaySilhouetteRoute,
   PokemonNameRoute: PokemonNameRoute,
   TypesNameRoute: TypesNameRoute,
+  BerriesIndexRoute: BerriesIndexRoute,
+  CompareIndexRoute: CompareIndexRoute,
   GamesIndexRoute: GamesIndexRoute,
+  ItemsIndexRoute: ItemsIndexRoute,
+  LocationsIndexRoute: LocationsIndexRoute,
+  MachinesIndexRoute: MachinesIndexRoute,
   MovesIndexRoute: MovesIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
   PokemonIndexRoute: PokemonIndexRoute,
+  TeamIndexRoute: TeamIndexRoute,
   TypesIndexRoute: TypesIndexRoute,
 }
 export const routeTree = rootRouteImport

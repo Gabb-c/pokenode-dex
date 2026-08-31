@@ -13,6 +13,8 @@ function move(name: string, overrides: Partial<BattleMove> = {}): BattleMove {
     pp: 20,
     maxPp: 20,
     priority: 0,
+    ailment: null,
+    ailmentChance: 0,
     ...overrides,
   }
 }

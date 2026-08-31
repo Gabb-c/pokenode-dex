@@ -1,7 +1,15 @@
 import type { Pokemon } from 'pokenode-ts'
 import { damageOf, effectivenessOf, landsHit } from '@/lib/battle/damage'
+import { itemHeal, type HeldItem } from '@/lib/battle/items'
 import { FALLBACK_MOVE, type BattleMove } from '@/lib/battle/moveset'
 import { battleStats, type BattleStats } from '@/lib/battle/stats'
+import {
+  attempt,
+  effectiveSpeed,
+  residual,
+  sleepFor,
+  type Status,
+} from '@/lib/battle/status'
 import { isBattleType, type Matchups, type TypeName } from '@/lib/types'
 
 export type Side = 'player' | 'foe'
@@ -17,6 +25,12 @@ export interface Fighter {
   moves: readonly BattleMove[]
   /** What every attacking type does to this Pokémon. See `battle-damage`. */
   chart: Matchups
+  /** Null while nothing ails it. */
+  status: Status | null
+  /** Turns of sleep left. Meaningless unless `status` is `sleep`. */
+  sleepTurns: number
+  /** What it is carrying, where this tier knows what the item does. */
+  item: HeldItem | null
 }
 
 /**
@@ -32,6 +46,14 @@ export type BattleEvent =
   | { kind: 'miss'; side: Side }
   | { kind: 'hit'; side: Side; damage: number; effectiveness: number; critical: boolean }
   | { kind: 'faint'; side: Side }
+  /** A condition stopped the move before it was spent. */
+  | { kind: 'blocked'; side: Side; status: Status }
+  /** A condition landed on this side. */
+  | { kind: 'afflicted'; side: Side; status: Status }
+  /** A condition lifted on its own. */
+  | { kind: 'cured'; side: Side; status: Status }
+  | { kind: 'residual'; side: Side; status: Status; damage: number }
+  | { kind: 'heal'; side: Side; amount: number }
 
 export interface BattleState {
   player: Fighter
@@ -61,6 +83,7 @@ export function fighterFrom(
   moves: readonly BattleMove[],
   chart: Matchups,
   level: number,
+  item: HeldItem | null = null,
 ): Fighter {
   const stats = battleStats(pokemon, level)
 
@@ -73,6 +96,9 @@ export function fighterFrom(
     hp: stats.hp,
     moves,
     chart,
+    status: null,
+    sleepTurns: 0,
+    item,
   }
 }
 
@@ -135,9 +161,11 @@ function firstMover(
   if (playerMove.priority !== foeMove.priority) {
     return playerMove.priority > foeMove.priority ? 'player' : 'foe'
   }
-  if (state.player.stats.speed !== state.foe.stats.speed) {
-    return state.player.stats.speed > state.foe.stats.speed ? 'player' : 'foe'
-  }
+  // Paralysis is read here rather than written into the stats: a fighter's
+  // stats are computed once and a condition that lifts must leave nothing behind.
+  const player = effectiveSpeed(state.player.stats.speed, state.player.status)
+  const foe = effectiveSpeed(state.foe.stats.speed, state.foe.status)
+  if (player !== foe) return player > foe ? 'player' : 'foe'
   return random() < 0.5 ? 'player' : 'foe'
 }
 
@@ -165,9 +193,21 @@ export function resolveTurn(
   const first = firstMover(state, picks.player.move, picks.foe.move, random)
   const events: BattleEvent[] = []
 
-  for (const side of [first, other(first)] as const) {
+  const order = [first, other(first)] as const
+  let downed = false
+
+  for (const side of order) {
     // Knocked out by the attack that opened this turn.
     if (sides[side].hp === 0) continue
+
+    const { acts, next, blocked, cured } = attempt(sides[side], random)
+    sides[side] = { ...sides[side], ...next }
+    if (cured) events.push({ kind: 'cured', side, status: cured })
+    if (!acts) {
+      // Checked before the move is spent, so a blocked turn costs no PP.
+      events.push({ kind: 'blocked', side, status: blocked! })
+      continue
+    }
 
     const { move, slot } = picks[side]
     sides[side] = spend(sides[side], slot)
@@ -187,7 +227,46 @@ export function resolveTurn(
 
     if (hp === 0) {
       events.push({ kind: 'faint', side: target })
+      downed = true
       break
+    }
+
+    // A condition only lands on a target that has none: they do not stack, and
+    // the games do not replace one with another.
+    if (move.ailment && sides[target].status === null && random() * 100 < move.ailmentChance) {
+      sides[target] = {
+        ...sides[target],
+        status: move.ailment,
+        sleepTurns: move.ailment === 'sleep' ? sleepFor(random) : 0,
+      }
+      events.push({ kind: 'afflicted', side: target, status: move.ailment })
+    }
+  }
+
+  // The end of the turn: conditions bite, items give back. Skipped entirely
+  // once someone has dropped — a fainted Pokémon takes no burn damage.
+  if (!downed) {
+    for (const side of order) {
+      const fighter = sides[side]
+      if (fighter.hp === 0) continue
+
+      const bite = residual(fighter.status, fighter.stats.hp)
+      if (bite > 0 && fighter.status) {
+        const hp = Math.max(0, fighter.hp - bite)
+        sides[side] = { ...sides[side], hp }
+        events.push({ kind: 'residual', side, status: fighter.status, damage: bite })
+        if (hp === 0) {
+          events.push({ kind: 'faint', side })
+          continue
+        }
+      }
+
+      const healed = itemHeal(sides[side].item, fighter.stats.hp)
+      if (healed > 0 && sides[side].hp < fighter.stats.hp) {
+        const hp = Math.min(fighter.stats.hp, sides[side].hp + healed)
+        events.push({ kind: 'heal', side, amount: hp - sides[side].hp })
+        sides[side] = { ...sides[side], hp }
+      }
     }
   }
 

@@ -137,8 +137,11 @@ than something each table remembers.
   That costs the mobile address bar's auto-hide, and buys a status rail that is
   never scrolled away from — which is the point of the app. The bar and the rail
   are held to ~92px and ~44px on a phone so the trade stays worth making: the bar
-  gives the nav a row of its own below `sm`, and the rail scrolls sideways rather
-  than wrapping to three lines.
+  gives the nav a row of its own below `sm`, and both the nav row and the rail
+  scroll sideways rather than wrapping to three lines. Twelve section labels are
+  ~800px of unbreakable text, which fits no phone and not much of a laptop; in a
+  fixed shell a wrapped bar takes the reading area rather than giving it up, so
+  the row swipes instead.
 - **A phone is the narrow case, not the broken one.** Anything the reader acts on
   — a move menu, a guess field, a filter — belongs on screen with whatever it
   acts on, at 375×667 and up. The battle is the worked example: its two
@@ -181,6 +184,22 @@ is a matchup cell, where it is a label.
 
 **Stat bar** — `role="meter"` with real `aria-valuenow/min/max`, tinted with the
 Pokémon's primary type, scaled against 255 (Blissey's HP, the highest base stat).
+The stat calculator passes a larger `max`, because a raised stat is not a base
+one and a meter that pegs at full says nothing.
+
+**Status badge** — the condition a fighter is under, as the games' own three
+letters (`BRN`, `PSN`, `PAR`, `SLP`, `FRZ`) in an existing semantic tone. The
+row is held open whether or not there is one, so a condition landing does not
+shunt the sprite beneath it mid-turn, and the letters carry the whole signal —
+the tone only follows them. No new token: conditions reuse `negative`,
+`caution`, `accent` and `ink-lo`.
+
+**Transport waterfall** — a drawer above the rail's row, opened from it, listing
+the last dozen requests with the tier that answered and what each cost. It opens
+*upwards* because the rail is the last thing on the page. The bar beside each
+row is decoration over a figure that is already written out, so it is
+`aria-hidden`. The rail's own line answers "what just happened"; this answers
+"what has this page been doing".
 
 **Sprite viewer** — the sets the API publishes, switchable, with shiny / back /
 female as facets. The controls mirror `PokemonSpriteOptions`, which is a
@@ -189,6 +208,12 @@ gendered one, `dream-world` has no shiny. Unsupported facets are **disabled and
 explained on hover, never hidden** — the constraint is part of what the page is
 teaching. The sprite repository is also incomplete, so a missing image falls back
 to a note rather than a broken icon.
+
+**Type symbol** — the game's own icon for a type, from the newest generation
+that drew one, above the vertical column heading on `/types` and beside the
+heading on a type's page. Always `alt=""`: it is a second channel on something
+already named in text, never the identification itself. A type no game drew a
+symbol for simply shows the name, as before.
 
 **Evolution graph** — a real directed graph, laid out by recursion rather than by
 measuring coordinates: each species sits beside a column of what it evolves into,

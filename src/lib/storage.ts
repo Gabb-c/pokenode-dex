@@ -66,3 +66,35 @@ export function counter(key: string): Counter {
     },
   }
 }
+
+/** A structured value kept across sessions, like a saved team. */
+export interface Saved<T> {
+  read(fallback: T): T
+  save(value: T): void
+}
+
+/**
+ * A JSON-backed record, validated on the way in.
+ *
+ * Storage is shared with every other tab and every past version of this app, so
+ * what comes back is untrusted: a value that no longer matches the shape the
+ * caller expects is dropped for the fallback rather than handed on. `counter`
+ * does the same thing for a scalar, which is all it can hold.
+ */
+export function record<T>(key: string, isValid: (raw: unknown) => raw is T): Saved<T> {
+  return {
+    read(fallback: T): T {
+      const saved = readItem(key)
+      if (saved === null) return fallback
+      try {
+        const parsed: unknown = JSON.parse(saved)
+        return isValid(parsed) ? parsed : fallback
+      } catch {
+        return fallback
+      }
+    },
+    save(value: T): void {
+      writeItem(key, JSON.stringify(value))
+    },
+  }
+}

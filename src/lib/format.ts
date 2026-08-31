@@ -69,3 +69,17 @@ const multipliers = new Map([
 export function effectiveness(multiplier: number): string {
   return multipliers.get(multiplier) ?? `${multiplier}`
 }
+
+const STAT_LABELS: Record<string, string> = {
+  hp: 'HP',
+  attack: 'Attack',
+  defense: 'Defense',
+  'special-attack': 'Sp. Atk',
+  'special-defense': 'Sp. Def',
+  speed: 'Speed',
+}
+
+/** The games' own abbreviations, which a stat column has no room to spell out. */
+export function statLabel(slug: string): string {
+  return STAT_LABELS[slug] ?? humanize(slug)
+}

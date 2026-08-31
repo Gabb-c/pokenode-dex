@@ -1,56 +1,16 @@
-import { useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { stats } from '@/api/client'
 import { clearAllCaches, l1Hits } from '@/api/query-client'
-import { transportLog, type ResponseSource, type TransportEvent } from '@/api/transport-log'
+import { transportLog } from '@/api/transport-log'
+import { TransportWaterfall } from '@/components/chrome/TransportWaterfall'
 import { useRailOpen } from '@/hooks/use-rail-open'
-
-const SOURCE_LABEL: Record<ResponseSource, string> = {
-  network: 'network',
-  cache: 'L2 hit',
-  'in-flight': 'coalesced',
-  revalidated: '304',
-}
-
-const SOURCE_TONE: Record<ResponseSource, string> = {
-  network: 'text-caution',
-  cache: 'text-positive',
-  'in-flight': 'text-accent',
-  revalidated: 'text-positive',
-}
-
-/** `performance.now()` deltas carry float noise the rail has no room for. */
-const ms = (value: number) => `${Math.round(value)} ms`
-
-function describe(event: TransportEvent): { tone: string; label: string; detail: string } {
-  switch (event.kind) {
-    case 'response':
-      return {
-        tone: SOURCE_TONE[event.source],
-        label: SOURCE_LABEL[event.source],
-        detail: ms(event.durationMs),
-      }
-    case 'request':
-      return { tone: 'text-ink-lo', label: event.method.toLowerCase(), detail: '…' }
-    case 'retry':
-      return { tone: 'text-caution', label: `retry ${event.attempt}`, detail: ms(event.delayMs) }
-    case 'cancelled':
-      return { tone: 'text-ink-lo', label: 'cancelled', detail: ms(event.durationMs) }
-    case 'error':
-      return { tone: 'text-negative', label: 'error', detail: event.message }
-  }
-}
-
-/** The path is the readable part of a PokéAPI URL; the origin is always the same. */
-function endpoint(url: string): string {
-  try {
-    return new URL(url).pathname.replace('/api/v2/', '')
-  } catch {
-    return url
-  }
-}
+import { describe, endpoint } from '@/lib/transport/describe'
 
 export function StatusRail() {
   const [open, setOpen] = useRailOpen()
+  // Not persisted: the drawer is a thing you open to look at something, not a
+  // layout preference, and it reads a log that starts empty on every reload.
+  const [waterfall, setWaterfall] = useState(false)
   // All three stay subscribed while the rail is folded: they tally work that
   // happens either way, and dropping them would only reopen onto stale figures.
   const snapshot = useSyncExternalStore(
@@ -68,6 +28,14 @@ export function StatusRail() {
 
   return (
     <footer className="relative z-20 border-t border-line bg-surface-1/95 backdrop-blur">
+      {/* Above the row rather than below it: the rail is the last thing on the
+          page, and a drawer opening downwards would open off the screen. */}
+      {open && waterfall && (
+        <div className="mx-auto max-w-[1400px] border-b border-line">
+          <TransportWaterfall events={snapshot.events} />
+        </div>
+      )}
+
       {/* Rides the top border while requests are outstanding — the same count
           the pending tally reports, in the shape of the wait. */}
       {snapshot.inFlight > 0 && <span aria-hidden className="rail-sweep" />}
@@ -118,6 +86,14 @@ export function StatusRail() {
               )}
               {snapshot.cancelled > 0 && <Tally label="cancelled" value={snapshot.cancelled} />}
               {snapshot.errors > 0 && <Tally label="errors" value={snapshot.errors} />}
+              <button
+                type="button"
+                aria-expanded={waterfall}
+                onClick={() => setWaterfall(!waterfall)}
+                className="btn shrink-0 px-2 py-0.5 hover:text-ink-hi"
+              >
+                {waterfall ? 'hide recent' : 'recent'}
+              </button>
               <button
                 type="button"
                 onClick={() => void clearAllCaches().then(() => location.reload())}
